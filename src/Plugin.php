@@ -54,7 +54,7 @@ class Plugin {
     new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
     j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-  })(window,document,'script','dataLayer','<?=get_option('shop_analytics_gtm_id')?>');</script>
+  })(window,document,'script','dataLayer','<?= get_option('shop_analytics_gtm_id') ?>');</script>
     <!-- End Google Tag Manager -->
   <?php
   }
@@ -65,7 +65,7 @@ class Plugin {
   public static function embedGtmContainerFooter() {
   ?>
     <!-- Google Tag Manager (noscript) -->
-    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-<?=get_option('shop_analytics_gtm_id')?>"
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-<?= get_option('shop_analytics_gtm_id') ?>"
     height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <!-- End Google Tag Manager (noscript) -->
   <?php
