@@ -1,5 +1,9 @@
 <?php
-  namespace Netzstrategen\ShopAnalytics;
+
+namespace Netzstrategen\ShopAnalytics;
+
+global $wp_roles;
+
 ?>
 
 <div class="wrap">
@@ -9,18 +13,18 @@
     <?php do_settings_sections('shop-analytics-settings'); ?>
     <table class="form-table">
       <tr class="form-field">
-        <th scope="row"><label for="shop-analytics-gtm-container"><?= __('Google Tag Manager Container ID', Plugin::L10N) ?></label></th>
+        <th scope="row"><label for="shop-analytics-gtm-id"><?= __('Google Tag Manager Container ID', Plugin::L10N) ?></label></th>
         <td>
-          <input type="text" name="shop_analytics_gtm_container" value="<?= esc_attr(get_option('shop_analytics_gtm_container')) ?>" id="shop-analytics-gtm-container">
+          <input type="text" name="shop_analytics_gtm_id" value="<?= esc_attr(get_option('shop_analytics_gtm_id')) ?>" id="shop-analytics-gtm-id">
         </td>
       </tr>
       <tr class="form-field">
-        <th scope="row"><?= __('Google Tag Manager Container Embed', Plugin::L10N) ?></th>
+        <th scope="row"><?= __('Google Tag Manager script embed', Plugin::L10N) ?></th>
         <td>
-          <label for="shop-analytics-gtm-container-embed">
-            <input type="checkbox" name="shop_analytics_gtm_container_embed" value="1" <?php checked(get_option('shop_analytics_gtm_container_embed')); ?> id="shop-analytics-gtm-container-embed">
-            <?= __('Embed Google Tag Manager container code to head and footer', Plugin::L10N) ?>
+          <label for="shop-analytics-gtm-embed">
+            <input type="checkbox" name="shop_analytics_gtm_embed" value="1" <?php checked(get_option('shop_analytics_gtm_embed')); ?> id="shop-analytics-gtm-embed">
           </label>
+          <?= __('Embed Google Tag Manager script to head and footer', Plugin::L10N) ?>
         </td>
       </tr>
       <tr class="form-field">
@@ -39,17 +43,17 @@
         <th scope="row"><?= __('Disable User Tracking', Plugin::L10N) ?></th>
         <td>
           <?php
-            global $wp_roles;
+            // Shouldn't there also the `visitor` role be included?
             $user_roles = $wp_roles->get_names();
-            $disabled_user_roles = (get_option('shop_analytics_disable_user_tracking')) ? get_option('shop_analytics_disable_user_tracking') : array();
-            foreach ($user_roles as $user_role => $user_role_name) {
           ?>
-            <input type="checkbox" name="shop_analytics_disable_user_tracking[]" value="<?= $user_role ?>" <?php checked(in_array($user_role, $disabled_user_roles)); ?>>
-            <?= $user_role_name ?>
-            <br/>
-          <?php
-            }
-          ?>
+          <?php foreach ($user_roles as $user_role => $user_role_name): ?>
+          <!-- `in_array` should use the 3rd parameter to compare strictly.-->
+            <label>
+              <input type="checkbox" name="shop_analytics_disable_user_tracking[]" value="<?= $user_role ?>" <?php checked(in_array($user_role, Plugin::getDisabledUserRoles(), TRUE)); ?>>
+              <?= $user_role_name ?>
+            </label>
+            <br>
+          <?php endforeach; ?>
         </td>
       </tr>
     </table>
