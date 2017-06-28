@@ -35,7 +35,7 @@ class Plugin {
    * @implements init
    */
   public static function init() {
-    if (!static::embedGtmScript()) {
+    if (static::embedGtmScript()) {
       add_action('wp_head', __CLASS__ . '::embedGtmScriptHead', 1);
       add_action('wp_footer', __CLASS__ . '::embedGtmScriptFooter', 1);
     }
@@ -47,7 +47,7 @@ class Plugin {
   /**
    * @implements wp_head
    */
-  public static function embedGtmContainerHead() {
+  public static function embedGtmScriptHead() {
   ?>
     <!-- Google Tag Manager -->
     <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
@@ -62,7 +62,7 @@ class Plugin {
   /**
    * @implements wp_footer
    */
-  public static function embedGtmContainerFooter() {
+  public static function embedGtmScriptFooter() {
   ?>
     <!-- Google Tag Manager (noscript) -->
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-<?= get_option('shop_analytics_gtm_id') ?>"
