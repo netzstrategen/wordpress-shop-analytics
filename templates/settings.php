@@ -19,11 +19,12 @@ global $wp_roles;
         </td>
       </tr>
       <tr class="form-field">
-        <th scope="row"><?= __('Enable tracking', Plugin::L10N) ?></th>
+        <th scope="row"><?= __('Google Tag Manager script embed', Plugin::L10N) ?></th>
         <td>
-          <label for="shop-analytics-gtm-enabled">
-            <input type="checkbox" name="shop_analytics_gtm_enabled" value="1" <?php checked(get_option('shop_analytics_gtm_enabled')); ?> id="shop-analytics-gtm-enabled">
+          <label for="shop-analytics-gtm-embed">
+            <input type="checkbox" name="shop_analytics_gtm_embed" value="1" <?php checked(get_option('shop_analytics_gtm_embed')); ?> id="shop-analytics-gtm-embed">
           </label>
+          <?= __('Embed Google Tag Manager script to head and footer', Plugin::L10N) ?>
         </td>
       </tr>
       <tr class="form-field">

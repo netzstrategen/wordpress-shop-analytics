@@ -35,11 +35,10 @@ class Plugin {
    * @implements init
    */
   public static function init() {
-    if (!static::isTrackingEnabled()) {
-      return;
+    if (!static::embedGtmScript()) {
+      add_action('wp_head', __CLASS__ . '::embedGtmScriptHead', 1);
+      add_action('wp_footer', __CLASS__ . '::embedGtmScriptFooter', 1);
     }
-    add_action('wp_head', __CLASS__ . '::embedGtmContainerHead', 1);
-    add_action('wp_footer', __CLASS__ . '::embedGtmContainerFooter', 1);
     add_filter('language_attributes', __CLASS__ . '::setDataUserId');
     add_filter('language_attributes', __CLASS__ . '::setDataUserRole');
     add_filter('language_attributes', __CLASS__ . '::setDataDisableUserTracking');
@@ -87,7 +86,7 @@ class Plugin {
    */
   public static function setDataUserRole($attr) {
     if (get_option('shop_analytics_track_user_role')) {
-      $attr .= ' data-user-role="' . Plugin::getCurrentUserRole() . '"';
+      $attr .= ' data-user-role="' . static::getCurrentUserRole() . '"';
     }
     return $attr;
   }
@@ -121,8 +120,8 @@ class Plugin {
   /**
    * Returns whether tracking is enabled or not.
    */
-  public static function isTrackingEnabled() {
-    return get_option('shop_analytics_gtm_enabled') && get_option('shop_analytics_gtm_id');
+  public static function embedGtmScript() {
+    return get_option('shop_analytics_gtm_embed') && get_option('shop_analytics_gtm_id');
   }
 
   /**
