@@ -75,8 +75,8 @@ class Plugin {
    * @implements language_attributes
    */
   public static function setDataUserId($attr) {
-    if (get_option('shop_analytics_track_user_id') && get_current_user_id()) {
-      $attr .= ' data-user-id="' . get_current_user_id() . '"';
+    if (is_user_logged_in()) {
+      $attr .= ' data-user-id="' . static::getCurrentUserID() . '"';
     }
     return $attr;
   }
@@ -108,6 +108,22 @@ class Plugin {
     // Probably you should check against all of the users roles?
     $user = wp_get_current_user();
     return $user->roles ? $user->roles[0] : 'visitor';
+  }
+
+  /**
+   * Returns the wordpress user ID or hashed e-mail address of the current user.
+   */
+  public static function getCurrentUserID() {
+    // Probably change the hash method to get shorter hashes
+    return get_option('shop_analytics_user_id_email') ? sha1(static::getCurrentUserMail()) : get_current_user_id();
+  }
+
+  /**
+   * Returns the e-mail address of the current user.
+   */
+  public static function getCurrentUserMail() {
+    $user = wp_get_current_user();
+    return $user->user_email ? $user->user_email : false;
   }
 
   /**
