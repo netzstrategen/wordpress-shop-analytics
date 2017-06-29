@@ -75,7 +75,7 @@ class Plugin {
    * @implements language_attributes
    */
   public static function setDataUserId($attr) {
-    if (is_user_logged_in()) {
+    if (get_option('shop_analytics_track_user_id') && is_user_logged_in()) {
       $attr .= ' data-user-id="' . static::getCurrentUserID() . '"';
     }
     return $attr;
@@ -123,7 +123,7 @@ class Plugin {
    */
   public static function getCurrentUserMail() {
     $user = wp_get_current_user();
-    return $user->user_email ? $user->user_email : false;
+    return $user->user_email;
   }
 
   /**
