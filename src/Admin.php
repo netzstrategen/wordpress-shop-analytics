@@ -35,6 +35,7 @@ class Admin {
     register_setting('shop-analytics-settings', 'shop_analytics_gtm_id');
     register_setting('shop-analytics-settings', 'shop_analytics_gtm_embed');
     register_setting('shop-analytics-settings', 'shop_analytics_track_user_id');
+    register_setting('shop-analytics-settings', 'shop_analytics_user_id_email');
     register_setting('shop-analytics-settings', 'shop_analytics_track_user_role');
     register_setting('shop-analytics-settings', 'shop_analytics_disable_user_tracking');
   }

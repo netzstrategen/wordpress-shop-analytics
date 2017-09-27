@@ -34,6 +34,12 @@ global $wp_roles;
         </td>
       </tr>
       <tr class="form-field">
+        <th scope="row"><label for="shop-analytics-user-id-email"><?= __('Use anonymized E-Mail address as User ID', Plugin::L10N) ?></label></th>
+        <td>
+          <input type="checkbox" name="shop_analytics_user_id_email" value="1" <?php checked(get_option('shop_analytics_user_id_email')); ?> id="shop-analytics-user-id_email">
+        </td>
+      </tr>
+      <tr class="form-field">
         <th scope="row"><label for="shop-analytics-track-user-role"><?= __('Track User Role', Plugin::L10N) ?></label></th>
         <td>
           <input type="checkbox" name="shop_analytics_track_user_role" value="1" <?php checked(get_option('shop_analytics_track_user_role')); ?> id="shop-analytics-track-user-role">
