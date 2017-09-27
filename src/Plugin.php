@@ -115,15 +115,8 @@ class Plugin {
    */
   public static function getCurrentUserID() {
     // Probably change the hash method to get shorter hashes
-    return get_option('shop_analytics_user_id_email') ? sha1(static::getCurrentUserMail()) : get_current_user_id();
-  }
-
-  /**
-   * Returns the e-mail address of the current user.
-   */
-  public static function getCurrentUserMail() {
     $user = wp_get_current_user();
-    return $user->user_email;
+    return get_option('shop_analytics_user_id_email') ? sha1($user->user_email) : $user->ID;
   }
 
   /**
