@@ -39,9 +39,8 @@ class Plugin {
       add_action('wp_head', __CLASS__ . '::embedGtmScriptHead', 1);
       add_action('wp_footer', __CLASS__ . '::embedGtmScriptFooter', 1);
     }
-    add_filter('language_attributes', __CLASS__ . '::setDataUserId');
-    add_filter('language_attributes', __CLASS__ . '::setDataUserRole');
-    add_filter('language_attributes', __CLASS__ . '::setDataDisableUserTracking');
+
+    add_filter('language_attributes', __CLASS__ . '::language_attributes');
   }
 
   /**
@@ -74,7 +73,36 @@ class Plugin {
   /**
    * @implements language_attributes
    */
-  public static function setDataUserId($attr) {
+  public static function language_attributes($attr) {
+    // Adds user id data attribute.
+    $attr .= static::setDataUserId();
+    // Adds user role data attribute.
+    $attr .= static::setDataUserRole();
+    // Adds user tracking status attribute.
+    $attr .= static::setDataDisableUserTracking();
+
+    return $attr;
+  }
+
+  /**
+   * Returns language code data attribute.
+   *
+   * @param string $attr
+   *
+   * @return string
+   */
+  public static function setDataLanguage($attr = '') {
+      return $attr .= ' data-language="' . static::getLanguageCode() . '"';
+  }
+
+  /**
+   * Returns user id data attribute.
+   *
+   * @param string $attr
+   *
+   * @return string
+   */
+  public static function setDataUserId($attr = '') {
     if (get_option('shop_analytics_track_user_id') && is_user_logged_in()) {
       $attr .= ' data-user-id="' . static::getCurrentUserID() . '"';
     }
@@ -82,23 +110,66 @@ class Plugin {
   }
 
   /**
-   * @implements language_attributes
+   * Returns user role data attribute.
+   *
+   * @param string $attr
+   *
+   * @return string
    */
-  public static function setDataUserRole($attr) {
+  public static function setDataUserRole($attr = '') {
     if (get_option('shop_analytics_track_user_role')) {
       $attr .= ' data-user-role="' . static::getCurrentUserRole() . '"';
     }
     return $attr;
   }
 
-
   /**
-   * @implements language_attributes
+   * Returns user tracking status data attribute.
+   *
+   * @param string $attr
+   *
+   * @return string
    */
-  public static function setDataDisableUserTracking($attr) {
+  public static function setDataDisableUserTracking($attr = '') {
     // Exclude the current user role from tracking if option is set.
     $track_user = (int) !in_array(static::getCurrentUserRole(), static::getDisabledUserRoles(), TRUE);
     return $attr . ' data-user-track="' . $track_user . '"';
+  }
+
+  /**
+   * Returns current page type data attribute.
+   *
+   * @param string $attr
+   *
+   * @return string
+   */
+  public static function setPageTypeData($attr = '') {
+
+  }
+
+  /**
+   * Returns currency code data attribute.
+   *
+   * @param string $attr
+   *
+   * @return string
+   */
+  public static function setDataCurrency($attr = '') {
+    if ($currency = WooCommerce::getWooCommerceCurrency()) {
+      $attr .= ' data-currency="' . $currency . '"';
+    }
+    return $attr;
+  }
+
+  /**
+   * Returns site frontend language code. If WPML plugin is active, its
+   * language setting gets precedence.
+   *
+   * @return string
+   */
+  public static function getLanguageCode() {
+    $language = defined('ICL_LANGUAGE_CODE') ? ICL_LANGUAGE_CODE : get_bloginfo('language');
+    return substr($language, 0, 2);
   }
 
   /**
