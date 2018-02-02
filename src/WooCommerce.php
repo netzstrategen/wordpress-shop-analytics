@@ -43,4 +43,33 @@ class WooCommerce {
     return $currency;
   }
 
+  /**
+   * Returns the current page type.
+   *
+   * @return string
+   */
+  public static function getPageType() {
+    $page_type = '';
+
+    if (static::trackingIsEnabled()) {
+      if (is_product()) {
+        $page_type = 'Product | Single';
+      }
+      elseif (is_product_category()) {
+        $page_type = 'Product | Category';
+      }
+      elseif (is_product_tag()) {
+        $page_type = 'Product | Tag';
+      }
+      elseif (is_cart()) {
+        $page_type = 'Cart';
+      }
+      elseif (is_checkout()) {
+        $page_type = 'Checkout';
+      }
+    }
+
+    return $page_type;
+  }
+
 }
