@@ -84,6 +84,8 @@ class Plugin {
     $attr .= static::setDataDisableUserTracking();
     // Adds currency code data attribute.
     $attr .= static::setDataCurrency();
+    // Adds page type data attribute.
+    $attr .= static::setPageTypeData();
 
     return $attr;
   }
@@ -162,7 +164,7 @@ class Plugin {
    * @return string
    */
   public static function setPageTypeData($attr = '') {
-
+    return $attr . ' data-page-type="' . static::getPageType() . '"';
   }
 
   /**
@@ -198,6 +200,41 @@ class Plugin {
    */
   public static function getDisabledUserRoles() {
     return get_option('shop_analytics_disable_user_tracking') ? get_option('shop_analytics_disable_user_tracking') : [];
+  }
+
+  /**
+   * Returns current page type.
+   *
+   * @return string
+   */
+  public static function getPageType() {
+    if ($page_type = WooCommerce::getPageType()) {
+        return $page_type;
+    }
+    else {
+      if (is_front_page()) {
+        $page_type = 'Home';
+      }
+      elseif (is_page()) {
+        $page_type = 'Page';
+      }
+      elseif (is_single()) {
+        $page_type = 'Post';
+      }
+      elseif (is_tag()) {
+        $page_type = 'Tag';
+      }
+      elseif (is_category()) {
+        $page_type = 'Category';
+      }
+      elseif (is_search()) {
+        $page_type = 'Search';
+      }
+      else {
+        $page_type = 'Other';
+      }
+    }
+    return $page_type;
   }
 
   /**
