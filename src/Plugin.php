@@ -82,6 +82,8 @@ class Plugin {
     $attr .= static::setDataUserRole();
     // Adds user tracking status attribute.
     $attr .= static::setDataDisableUserTracking();
+    // Adds currency code data attribute.
+    $attr .= static::setDataCurrency();
 
     return $attr;
   }
@@ -136,6 +138,20 @@ class Plugin {
     // Exclude the current user role from tracking if option is set.
     $track_user = (int) !in_array(static::getCurrentUserRole(), static::getDisabledUserRoles(), TRUE);
     return $attr . ' data-user-track="' . $track_user . '"';
+  }
+
+  /**
+   * Returns shop currency code data attribute.
+   *
+   * @param string $attr
+   *
+   * @return string
+   */
+  public static function setDataCurrency($attr = '') {
+    if ($currency = WooCommerce::getCurrency()) {
+      $attr .= ' data-currency="' . $currency . '"';
+    }
+    return $attr;
   }
 
   /**

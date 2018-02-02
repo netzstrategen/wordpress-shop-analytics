@@ -30,4 +30,17 @@ class WooCommerce {
     return static::pluginIsActive() && get_option('shop_analytics_track_ecommerce');
   }
 
+  /**
+   * Returns the current shop currency code.
+   *
+   * @return string
+   */
+  public static function getCurrency() {
+    $currency = '';
+    if (static::trackingIsEnabled() && function_exists('get_woocommerce_currency')) {
+      $currency = strtoupper(get_woocommerce_currency());
+    }
+    return $currency;
+  }
+
 }
