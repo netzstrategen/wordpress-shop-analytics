@@ -62,6 +62,21 @@ global $wp_roles;
           <?php endforeach; ?>
         </td>
       </tr>
+      <tr class="form-field">
+        <th scope="row">
+          <label for="shop-analytics-track-ecommerce"><?= __('Enable E-Commerce tracking', Plugin::L10N) ?></label>
+        </th>
+        <td>
+          <input
+            id="shop-analytics-track-ecommerce"
+            name="shop_analytics_track_ecommerce"
+            type="checkbox"
+            value="1"
+            <?php checked(WooCommerce::woocommerceTrackingIsEnabled()); ?>
+            <?php echo WooCommerce::woocommerceIsEnabled() ? '' : 'disabled'; ?>
+          >
+        </td>
+      </tr>
     </table>
     <?php submit_button(); ?>
   </form>
