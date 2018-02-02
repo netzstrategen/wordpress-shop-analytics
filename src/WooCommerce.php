@@ -17,7 +17,7 @@ class WooCommerce {
    *
    * @return bool
    */
-  public static function woocommerceIsEnabled() {
+  public static function pluginIsActive() {
     return is_plugin_active('woocommerce/woocommerce.php');
   }
 
@@ -26,8 +26,8 @@ class WooCommerce {
    *
    * @return bool
    */
-  public static function woocommerceTrackingIsEnabled() {
-    return static::woocommerceIsEnabled() && get_option('shop_analytics_track_ecommerce');
+  public static function trackingIsEnabled() {
+    return static::pluginIsActive() && get_option('shop_analytics_track_ecommerce');
   }
 
 }
