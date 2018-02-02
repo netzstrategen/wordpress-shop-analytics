@@ -74,6 +74,8 @@ class Plugin {
    * @implements language_attributes
    */
   public static function language_attributes($attr) {
+    // Adds language code data attribute.
+    $attr .= static::setDataLanguage();
     // Adds user id data attribute.
     $attr .= static::setDataUserId();
     // Adds user role data attribute.
@@ -148,22 +150,7 @@ class Plugin {
   }
 
   /**
-   * Returns currency code data attribute.
-   *
-   * @param string $attr
-   *
-   * @return string
-   */
-  public static function setDataCurrency($attr = '') {
-    if ($currency = WooCommerce::getWooCommerceCurrency()) {
-      $attr .= ' data-currency="' . $currency . '"';
-    }
-    return $attr;
-  }
-
-  /**
-   * Returns site frontend language code. If WPML plugin is active, its
-   * language setting gets precedence.
+   * Returns site frontend language code. If WPML plugin is active, its language setting gets precedence.
    *
    * @return string
    */
