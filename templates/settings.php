@@ -72,8 +72,8 @@ global $wp_roles;
             name="shop_analytics_track_ecommerce"
             type="checkbox"
             value="1"
-            <?php checked(WooCommerce::woocommerceTrackingIsEnabled()); ?>
-            <?php echo WooCommerce::woocommerceIsEnabled() ? '' : 'disabled'; ?>
+            <?php checked(WooCommerce::trackingIsEnabled()); ?>
+            <?php echo WooCommerce::pluginIsActive() ? '' : 'disabled'; ?>
           >
         </td>
       </tr>

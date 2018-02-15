@@ -35,136 +35,117 @@ class Plugin {
    * @implements init
    */
   public static function init() {
-    if (static::embedGtmScript()) {
-      add_action('wp_head', __CLASS__ . '::embedGtmScriptHead', 1);
-      add_action('wp_footer', __CLASS__ . '::embedGtmScriptFooter', 1);
+    if (is_admin()) {
+      // @see Admin::init()
+      return;
+    }
+    if (static::isContainerEnabled()) {
+      add_action('wp_head', __CLASS__ . '::wp_head', 1);
+      add_action('wp_footer', __CLASS__ . '::wp_footer', 1);
     }
 
-    add_filter('language_attributes', __CLASS__ . '::language_attributes');
+    // Adds global site and user context attributes to HTML tag.
+    add_filter('language_attributes', __CLASS__ . '::language_attributes', 99);
+
+    if (static::isEcommerceTrackingEnabled()) {
+      // Add products details as data attributes to remove item from cart link.
+      add_filter('woocommerce_cart_item_remove_link', __NAMESPACE__ . '\WooCommerce::woocommerce_cart_item_remove_link', 10, 2);
+
+      // Add a hidden HTML div element with product details as data attributes.
+      add_action('woocommerce_shop_loop_item_title', __NAMESPACE__ . '\WooCommerce::addProductDetailsHtmlDataAttr');
+      add_action('woocommerce_after_add_to_cart_button', __NAMESPACE__ . '\WooCommerce::addProductDetailsHtmlDataAttr');
+      add_action('woocommerce_thankyou', __NAMESPACE__ . '\WooCommerce::addOrderDetailsHtmlDataAttr');
+
+      // Enqueue Google Analytics Data Layer related scripts.
+      add_action('wp_enqueue_scripts', __CLASS__ . '::enqueueGaDataLayerScripts');
+    }
+  }
+
+  /**
+   * Returns whether basic GTM tracking is enabled or not.
+   */
+  public static function isContainerEnabled() {
+    return get_option('shop_analytics_gtm_embed') && get_option('shop_analytics_gtm_id');
   }
 
   /**
    * @implements wp_head
    */
-  public static function embedGtmScriptHead() {
-  ?>
-    <!-- Google Tag Manager -->
-    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-  })(window,document,'script','dataLayer','<?= get_option('shop_analytics_gtm_id') ?>');</script>
-    <!-- End Google Tag Manager -->
-  <?php
+  public static function wp_head() {
+    if (!$gtm_id = get_option('shop_analytics_gtm_id')) {
+      return;
+    }
+    ?>
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','<?= $gtm_id ?>');</script>
+    <?php
   }
 
   /**
    * @implements wp_footer
    */
-  public static function embedGtmScriptFooter() {
-  ?>
-    <!-- Google Tag Manager (noscript) -->
-    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-<?= get_option('shop_analytics_gtm_id') ?>"
-    height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
-    <!-- End Google Tag Manager (noscript) -->
-  <?php
+  public static function wp_footer() {
+    if (!$gtm_id = get_option('shop_analytics_gtm_id')) {
+      return;
+    }
+    ?>
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-<?= $gtm_id ?>" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <?php
   }
 
   /**
    * @implements language_attributes
    */
-  public static function language_attributes($attr) {
+  public static function language_attributes($html_attributes) {
+    $attributes = [];
+
     // Adds language code data attribute.
-    $attr .= static::setDataLanguage();
+    $attributes['language'] = static::getLanguageCode();
     // Adds user id data attribute.
-    $attr .= static::setDataUserId();
-    // Adds user role data attribute.
-    $attr .= static::setDataUserRole();
-    // Adds user tracking status attribute.
-    $attr .= static::setDataDisableUserTracking();
-    // Adds currency code data attribute.
-    $attr .= static::setDataCurrency();
-    // Adds page type data attribute.
-    $attr .= static::setPageTypeData();
-
-    return $attr;
-  }
-
-  /**
-   * Returns language code data attribute.
-   *
-   * @param string $attr
-   *
-   * @return string
-   */
-  public static function setDataLanguage($attr = '') {
-      return $attr .= ' data-language="' . static::getLanguageCode() . '"';
-  }
-
-  /**
-   * Returns user id data attribute.
-   *
-   * @param string $attr
-   *
-   * @return string
-   */
-  public static function setDataUserId($attr = '') {
     if (get_option('shop_analytics_track_user_id') && is_user_logged_in()) {
-      $attr .= ' data-user-id="' . static::getCurrentUserID() . '"';
+      $attributes['user-id'] = static::getCurrentUserID();
     }
-    return $attr;
-  }
-
-  /**
-   * Returns user role data attribute.
-   *
-   * @param string $attr
-   *
-   * @return string
-   */
-  public static function setDataUserRole($attr = '') {
+    // Adds user role data attribute.
     if (get_option('shop_analytics_track_user_role')) {
-      $attr .= ' data-user-role="' . static::getCurrentUserRole() . '"';
+      $attributes['user-type'] = static::getCurrentUserRole();
     }
-    return $attr;
-  }
-
-  /**
-   * Returns user tracking status data attribute.
-   *
-   * @param string $attr
-   *
-   * @return string
-   */
-  public static function setDataDisableUserTracking($attr = '') {
-    // Exclude the current user role from tracking if option is set.
-    $track_user = (int) !in_array(static::getCurrentUserRole(), static::getDisabledUserRoles(), TRUE);
-    return $attr . ' data-user-track="' . $track_user . '"';
-  }
-
-  /**
-   * Returns shop currency code data attribute.
-   *
-   * @param string $attr
-   *
-   * @return string
-   */
-  public static function setDataCurrency($attr = '') {
+    // Adds user tracking status attribute. Exclude the current user role from tracking if option is set.
+    $attributes['user-track'] = (int) !in_array(static::getCurrentUserRole(), static::getDisabledUserRoles(), TRUE);
+    // Adds currency code data attribute.
     if ($currency = WooCommerce::getCurrency()) {
-      $attr .= ' data-currency="' . $currency . '"';
+      $attributes['currency'] = $currency;
     }
-    return $attr;
-  }
+    // Adds page type data attribute.
+    $attributes['page-type'] = static::getPageType();
 
-  /**
-   * Returns current page type data attribute.
-   *
-   * @param string $attr
-   *
-   * @return string
-   */
-  public static function setPageTypeData($attr = '') {
-    return $attr . ' data-page-type="' . static::getPageType() . '"';
+    if (static::isEcommerceTrackingEnabled()) {
+      // Adds product category page path attribute.
+      if (is_product_category() && $category_page_path = WooCommerce::getProductCategoryParents(get_queried_object()->term_id, ' > ')) {
+        $attributes['product-category'] = $category_page_path;
+      }
+      // Adds products count in taxonomy attribute.
+      if ($products_count = WooCommerce::getProductCountInTaxonomy()) {
+        $attributes['product-count'] = $products_count;
+      }
+      // Adds product tag attribute.
+      if (is_product_tag() && $page_tag = get_queried_object()->name) {
+        $attributes['product-tag'] = $page_tag;
+      }
+      // Adds product attribute page attribute.
+      if (WooCommerce::isAttribute() && $product_attribute = get_queried_object()->name) {
+        $attributes['product-attribute'] .= $product_attribute;
+      }
+      // Adds product details attributes.
+      if (is_product() && $product_details = WooCommerce::getProductDetails(get_the_ID(), FALSE)) {
+        foreach (WooCommerce::getProductAttributes(wc_get_product($product_details['id'])) as $attribute) {
+          $product_details[$attribute['key']] = $attribute['value'];
+        }
+        foreach ($product_details as $key => $value) {
+          $attributes['product-' . $key] = $value ?: '';
+        }
+      }
+    }
+
+    return $html_attributes . ' ' . static::buildAttributesDataTags($attributes);
   }
 
   /**
@@ -209,39 +190,47 @@ class Plugin {
    */
   public static function getPageType() {
     if ($page_type = WooCommerce::getPageType()) {
-        return $page_type;
+      return $page_type;
+    }
+    elseif (is_front_page()) {
+      return 'Home';
+    }
+    elseif (is_page()) {
+      return 'Page';
+    }
+    elseif (is_single()) {
+      return 'Post';
+    }
+    elseif (is_tag()) {
+      return 'Tag';
+    }
+    elseif (is_category()) {
+      return 'Category';
+    }
+    elseif (is_search()) {
+      return 'Search';
     }
     else {
-      if (is_front_page()) {
-        $page_type = 'Home';
-      }
-      elseif (is_page()) {
-        $page_type = 'Page';
-      }
-      elseif (is_single()) {
-        $page_type = 'Post';
-      }
-      elseif (is_tag()) {
-        $page_type = 'Tag';
-      }
-      elseif (is_category()) {
-        $page_type = 'Category';
-      }
-      elseif (is_search()) {
-        $page_type = 'Search';
-      }
-      else {
-        $page_type = 'Other';
-      }
+      return 'Other';
     }
-    return $page_type;
   }
 
   /**
-   * Returns whether tracking is enabled or not.
+   * Returns TRUE if WooCommerce plugin is installed and activated.
+   *
+   * @return bool
    */
-  public static function embedGtmScript() {
-    return get_option('shop_analytics_gtm_embed') && get_option('shop_analytics_gtm_id');
+  public static function isWooCommerceActive() {
+    return class_exists('WooCommerce');
+  }
+
+  /**
+   * Returns TRUE if WooCommerce plugin is active and ecommerce tracking enabled.
+   *
+   * @return bool
+   */
+  public static function isEcommerceTrackingEnabled() {
+    return static::isWooCommerceActive() && get_option('shop_analytics_track_ecommerce');
   }
 
   /**
@@ -254,6 +243,45 @@ class Plugin {
       static::$baseUrl = plugins_url('', static::getBasePath() . '/plugin.php');
     }
     return static::$baseUrl;
+  }
+
+  /**
+   * Loads Google Analytics Data Layer related scripts.
+   */
+  public static function enqueueGaDataLayerScripts() {
+    $handle = Plugin::PREFIX . '-datalayer';
+    $scripts = static::getBaseUrl() . '/dist/scripts/datalayer';
+
+    wp_enqueue_script($handle . '-common', "$scripts/common.js", ['jquery'], FALSE, FALSE);
+
+    if (is_product()) {
+      wp_enqueue_script($handle . '-product', "$scripts/product.js", [$handle . '-common'], FALSE, TRUE);
+    }
+
+    if (is_wc_endpoint_url()) {
+      wp_enqueue_script($handle . '-endpoints', "$scripts/endpoints.js", [$handle . '-common'], FALSE, TRUE);
+      if (is_wc_endpoint_url('order-pay')) {
+        wp_localize_script($handle . '-endpoints', 'endpoint_id', 'order-pay');
+      }
+      if (is_wc_endpoint_url('order-received')) {
+        wp_localize_script($handle . '-endpoints', 'endpoint_id', 'order-received');
+      }
+    }
+  }
+
+  /**
+   * Builds a string containing HTML data tags with the product attributes.
+   *
+   * @param array $attributes
+   * @return string
+   */
+  public static function buildAttributesDataTags($attributes) {
+    array_walk($attributes, function (&$value, $key) {
+      if (!is_null($value) && '' !== trim($value)) {
+        $value = "data-$key=\"" . esc_attr($value) . '"';
+      }
+    });
+    return implode(' ', $attributes);
   }
 
   /**
