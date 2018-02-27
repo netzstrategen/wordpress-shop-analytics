@@ -132,7 +132,7 @@ document.shopAnalytics = {
   /**
    * Reacts to removal of all products from cart.
    */
-  function onEmptyCart(e) {
+  function onEmptyCart() {
     var $cart_items = $('.cart .cart_item td.product-remove .remove');
     updateCartItemsQuantity($cart_items);
     removeProductsFromCart($cart_items);
@@ -141,7 +141,7 @@ document.shopAnalytics = {
   /**
    * Reacts to removal of a single product from cart.
    */
-  function onRemoveSingleProduct(e) {
+  function onRemoveSingleProduct() {
     updateCartItemsQuantity($(this));
     removeProductsFromCart($(this));
   }

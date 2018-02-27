@@ -57,11 +57,11 @@ document.shopAnalytics = {
         Cookies.set("shop-analytics-list-type", o, new Date(new Date().getTime() + 6e5)), 
         n.postToDataLayer(t, r);
     }
-    function r(t) {
-        var a = e(".cart .cart_item td.product-remove .remove");
-        s(a), i(a);
+    function r() {
+        var t = e(".cart .cart_item td.product-remove .remove");
+        s(t), i(t);
     }
-    function c(t) {
+    function c() {
         s(e(this)), i(e(this));
     }
     function s(t) {
