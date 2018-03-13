@@ -2,9 +2,9 @@
 
 /*
   Plugin Name: Shop Analytics
-  Version: 0.0.1
+  Version: 1.0.0
   Text Domain: shop-analytics
-  Description: Integration of Google Tag Manager & Google Analytics for WooCommerce.
+  Description: Integrates Google Tag Manager and Google Analytics into WooCommerce.
   Author: netzstrategen
   Author URI: http://www.netzstrategen.com
   License: GPL-2.0+
@@ -37,4 +37,5 @@ register_deactivation_hook(__FILE__, __NAMESPACE__ . '\Schema::deactivate');
 register_uninstall_hook(__FILE__, __NAMESPACE__ . '\Schema::uninstall');
 
 add_action('init', __NAMESPACE__ . '\Plugin::init');
-add_action('init', __NAMESPACE__ . '\Admin::init');
+add_action('admin_menu', __NAMESPACE__ . '\Admin::menu');
+add_action('admin_init', __NAMESPACE__ . '\Admin::init');

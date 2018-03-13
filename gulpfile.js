@@ -6,7 +6,7 @@ var runSequence = require('run-sequence');
 var uglify = require('gulp-uglify');
 
 gulp.task('eslint', function () {
-  return gulp.src(['**/*.js', '!node_modules/**', '!gulpfile.js'])
+  return gulp.src(['assets/scripts/**/*.js', '!node_modules/**', '!gulpfile.js'])
     .pipe(eslint())
     .pipe(eslint.format());
 });

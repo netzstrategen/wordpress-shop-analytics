@@ -1,7 +1,7 @@
 {
   "name": "shop-analytics",
   "version": "1.0.0",
-  "description": "Shop Analytics.",
+  "description": "Integrates Google Tag Manager and Google Analytics into WooCommerce.",
   "main": "gulpfile.js",
   "author": "netzstrategen <hallo@netzstrategen.com>",
   "license": "GPL-2.0+",
