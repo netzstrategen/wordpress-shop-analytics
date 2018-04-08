@@ -115,7 +115,11 @@ class Plugin {
       $attributes['currency'] = $currency;
     }
     // Adds page type data attribute.
-    $attributes['page-type'] = static::getPageType();
+    if ($wp_query->queried_object) {
+      $attributes['page-type'] = static::getPageType($wp_query->queried_object->ID);
+    }
+    // Adds shop market code. Temporary set to the fallback value defined in the plugin settings.
+    $attributes['market'] = get_option('shop_analytics_market_default') ?: 'GLOBAL';
 
     if (static::isEcommerceTrackingEnabled()) {
       // Adds product category page path attribute.
