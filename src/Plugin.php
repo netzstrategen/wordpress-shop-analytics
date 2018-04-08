@@ -96,6 +96,8 @@ class Plugin {
    * @implements language_attributes
    */
   public static function language_attributes($html_attributes) {
+    global $wp_query;
+
     $attributes = [];
 
     // Adds language code data attribute.
@@ -110,10 +112,6 @@ class Plugin {
     }
     // Adds user tracking status attribute. Exclude the current user role from tracking if option is set.
     $attributes['user-track'] = (int) !in_array(static::getCurrentUserRole(), static::getDisabledUserRoles(), TRUE);
-    // Adds currency code data attribute.
-    if ($currency = WooCommerce::getCurrency()) {
-      $attributes['currency'] = $currency;
-    }
     // Adds page type data attribute.
     if ($wp_query->queried_object) {
       $attributes['page-type'] = static::getPageType($wp_query->queried_object->ID);
@@ -122,8 +120,12 @@ class Plugin {
     $attributes['market'] = get_option('shop_analytics_market_default') ?: 'GLOBAL';
 
     if (static::isEcommerceTrackingEnabled()) {
+      // Adds currency code data attribute.
+      if ($currency = WooCommerce::getCurrency()) {
+        $attributes['currency'] = $currency;
+      }
       // Adds product category page path attribute.
-      if (is_product_category() && $category_page_path = WooCommerce::getProductCategoryParents(get_queried_object()->term_id, ' > ')) {
+      if (is_product_category() && $category_page_path = WooCommerce::getProductCategoryParents($wp_query->queried_object->term_id, ' > ')) {
         $attributes['product-category'] = $category_page_path;
       }
       // Adds products count in taxonomy attribute.
@@ -131,12 +133,12 @@ class Plugin {
         $attributes['product-count'] = $products_count;
       }
       // Adds product tag attribute.
-      if (is_product_tag() && $page_tag = get_queried_object()->name) {
-        $attributes['product-tag'] = $page_tag;
+      if (is_product_tag() && $wp_query->queried_object->name) {
+        $attributes['product-tag'] = $wp_query->queried_object->name;
       }
       // Adds product attribute page attribute.
-      if (WooCommerce::isAttribute() && $product_attribute = get_queried_object()->name) {
-        $attributes['product-attribute'] .= $product_attribute;
+      if (WooCommerce::isAttribute() && $wp_query->queried_object->name) {
+        $attributes['product-attribute'] = $wp_query->queried_object->name;
       }
       // Adds product details attributes.
       if (is_product() && $product_details = WooCommerce::getProductDetails(get_the_ID(), FALSE)) {
@@ -190,10 +192,13 @@ class Plugin {
   /**
    * Returns current page type.
    *
+   * @param int $post_id
+   *   Current page post ID.
+   *
    * @return string
    */
-  public static function getPageType() {
-    if ($page_type = WooCommerce::getPageType()) {
+  public static function getPageType($post_id) {
+    if ($page_type = WooCommerce::getPageType($post_id)) {
       return $page_type;
     }
     elseif (is_front_page()) {

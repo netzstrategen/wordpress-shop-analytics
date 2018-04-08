@@ -29,17 +29,18 @@ class WooCommerce {
   /**
    * Retrieves the current page type.
    *
+   * @param int $post_id
+   *   Current page post ID.
+   *
    * @return string
    *   Page type.
    */
-  public static function getPageType() {
+  public static function getPageType($post_id) {
     if (!Plugin::isEcommerceTrackingEnabled()) {
       return '';
     }
     if (is_product()) {
-      global $post;
-
-      return 'Product | ' . ucwords(wc_get_product($post->ID)->get_type());
+      return 'Product | ' . ucwords(wc_get_product($post_id)->get_type());
     }
     elseif (is_product_category()) {
       return 'Product | Category';
