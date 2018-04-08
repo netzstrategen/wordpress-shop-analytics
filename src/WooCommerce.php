@@ -37,7 +37,9 @@ class WooCommerce {
       return '';
     }
     if (is_product()) {
-      return 'Product | Single';
+      global $post;
+
+      return 'Product | ' . ucwords(wc_get_product($post->ID)->get_type());
     }
     elseif (is_product_category()) {
       return 'Product | Category';
