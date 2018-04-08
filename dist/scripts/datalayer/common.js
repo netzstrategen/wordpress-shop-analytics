@@ -25,21 +25,21 @@ document.shopAnalytics = {
     function a(a, o) {
         var r = e(o && o.responseText ? o.responseText : document).find(".shop-analytics-product-details");
         if (r.length && !r.parents(".shop-analytics-order-details").length) {
-            var c = 1;
+            var c = 1, s = "";
             r.each(function(t) {
                 e(this).closest(".cart").length && r.splice(t, 1);
             }), r.each(function(t) {
-                var a = e(this);
-                a.data("position", c++), a.data("list", n.getProductsListType(a));
+                var a = e(this), o = n.getProductsListType(a);
+                s !== o && (s = o, c = 1), a.data("position", c++), a.data("list", o);
             });
-            var s = {
+            var i = {
                 event: "EECproductImpression",
                 ecommerce: {
                     currencyCode: r.first().data("currency"),
                     impressions: n.getProductsData(r)
                 }
             };
-            n.postToDataLayer(t, s);
+            n.postToDataLayer(t, i);
         }
     }
     function o() {
