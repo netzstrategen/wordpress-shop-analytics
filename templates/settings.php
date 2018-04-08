@@ -77,6 +77,22 @@ global $wp_roles;
           >
         </td>
       </tr>
+      <tr class="form-field">
+        <th scope="row">
+          <label for="shop-analytics-market-default"><?= __('Market code (fallback value)', Plugin::L10N) ?></label>
+        </th>
+        <td>
+          <input
+            id="shop-analytics-market-default"
+            name="shop_analytics_market_default"
+            type="text"
+            size="20"
+            value="<?= esc_attr(get_option('shop_analytics_market_default')) ?: 'GLOBAL' ?>"
+            maxlength="12"
+            style="width:120px;"
+          >
+        </td>
+      </tr>
     </table>
     <?php submit_button(); ?>
   </form>
