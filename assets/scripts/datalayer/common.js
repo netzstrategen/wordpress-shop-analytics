@@ -82,9 +82,11 @@ document.shopAnalytics = {
       return;
     }
 
-    // Remove unwanted product instances from product impressions list and assign
-    // a position value and list type to the rest.
+    // Remove single product view instances from product impressions list and assign
+    // a list type (Related products, Cross-sells, Category) and a position value
+    // (index of the product in the list it belongs) to the rest.
     var position = 1;
+    var productsListType = '';
     var remove = [];
     $products.each(function(index) {
       if ($(this).closest('.cart').length) {
@@ -93,8 +95,14 @@ document.shopAnalytics = {
     });
     $products.each(function(index) {
       var $this = $(this);
+      var currentProductListType = shopAnalytics.getProductsListType($this);
+      // Reset the position counter if start parsing products from a different list.
+      if (productsListType !== currentProductListType) {
+        productsListType = currentProductListType;
+        position = 1;
+      }
       $this.data('position', position++);
-      $this.data('list', shopAnalytics.getProductsListType($this));
+      $this.data('list', currentProductListType);
     });
 
     var event_data = {
