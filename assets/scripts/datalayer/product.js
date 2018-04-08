@@ -60,7 +60,10 @@
         }
       }
     };
-
+    variation = getProductVariationAttributes();
+    if (variation) {
+      event_data.ecommerce.add.products[0].variant = variation;
+    }
     shopAnalytics.postToDataLayer(dataLayer, event_data);
   };
 
