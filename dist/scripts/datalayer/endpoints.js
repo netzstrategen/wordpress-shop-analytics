@@ -1,26 +1,26 @@
 "use strict";
 
-!function(a) {
-    function e() {
-        "order-received" === endpoint_id && t();
+!function(t) {
+    function a() {
+        e();
     }
-    function t() {
-        var e = a(document).find(".shop-analytics-order-details"), t = e.find(".shop-analytics-product-details"), i = {
+    function e() {
+        var a = t(document).find(".shop-analytics-order-details"), e = a.find(".shop-analytics-product-details"), n = {
             event: "EECpurchase",
             ecommerce: {
                 purchase: {
                     actionField: {
-                        id: e.data("id") + "",
-                        revenue: e.data("revenue") + "",
-                        tax: e.data("tax") + "",
-                        shipping: e.data("shipping") + ""
+                        id: String(a.data("id")),
+                        revenue: String(a.data("revenue")),
+                        tax: String(a.data("tax")),
+                        shipping: String(a.data("shipping"))
                     }
                 },
-                products: d.getProductsData(t)
+                products: i.getProductsData(e)
             }
         };
-        d.postToDataLayer(dataLayer, i);
+        i.postToDataLayer(n);
     }
-    var d = document.shopAnalytics;
-    a(e);
+    var i = document.shopAnalytics;
+    t(a);
 }(jQuery);
