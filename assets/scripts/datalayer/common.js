@@ -1,8 +1,20 @@
 'use strict';
 
+window.dataLayer = window.dataLayer || [];
+
 document.shopAnalytics = {
   /**
-   * Collects detailed data for a collection of products.
+   * Builds an array of products details retrieving the
+   * values of data attributes from a set of DOM elements.
+   * This array will be used as part of the data pushed
+   * to the Google Analytics dataLayer.
+   *
+   * @param $products
+   *   Array of DOM elements with product data details as
+   *   data attributes.
+   *
+   * @return array
+   *   Array of objects containing products details.
    */
   getProductsData: function($products) {
     var products_data = [];
@@ -10,10 +22,9 @@ document.shopAnalytics = {
 
     $products.each(function () {
       var $this = jQuery(this);
-      var quantity;
       var product = {
         name: $this.data('name'),
-        id: $this.data('sku') + '',
+        id: String($this.data('sku')),
         price: $this.data('price'),
         brand: $this.data('brand'),
         category: $this.data('category'),
@@ -42,9 +53,11 @@ document.shopAnalytics = {
 
     if ($product.closest('.cross-sells').length) {
       list_type = 'Cross-sells products';
-    } else if ($product.closest('.related').length) {
+    }
+    else if ($product.closest('.related').length) {
       list_type = 'Related products';
-    } else {
+    }
+    else {
       list_type = 'Product Category';
     }
     return list_type;
@@ -53,16 +66,14 @@ document.shopAnalytics = {
   /**
    * Pushes event data to Google Analytics data layer.
    */
-  postToDataLayer: function(dataLayer, event_data) {
+  postToDataLayer: function(event_data) {
     if ('object' === typeof event_data) {
-      console.dir(event_data);
-      dataLayer = dataLayer || [];
       window.dataLayer.push(event_data);
     }
   }
 };
 
-(function (dataLayer, $) {
+(function ($) {
   var shopAnalytics = document.shopAnalytics;
 
   $(onLoad);
@@ -73,7 +84,10 @@ document.shopAnalytics = {
     .on('click', 'th.product-remove .remove', onEmptyCart);
 
   /**
-   * Reacts to loading of products on a page or in a AJAX response.
+   * Collects details about products displayed on the page when loaded or added
+   * dynamically with AJAX. Skips the products displayed in the cart content listing.
+   * Each product is assigned a position as an index to its order in the list/block
+   * it is contained (Related products, Cross-sells, Category).
    */
   function onLoad(event, xhr) {
     var $products = $(xhr && xhr.responseText ? xhr.responseText : document).find('.shop-analytics-product-details');
@@ -85,7 +99,7 @@ document.shopAnalytics = {
     // a list type (Related products, Cross-sells, Category) and a position value
     // (index of the product in the list it belongs) to the rest.
     var position = 1;
-    var productsListType = '';
+    var products_list_type = '';
     var remove = [];
     $products.each(function(index) {
       if ($(this).closest('.cart').length) {
@@ -94,50 +108,50 @@ document.shopAnalytics = {
     });
     $products.each(function(index) {
       var $this = $(this);
-      var currentProductListType = shopAnalytics.getProductsListType($this);
+      var current_product_list_type = shopAnalytics.getProductsListType($this);
       // Reset the position counter if start parsing products from a different list.
-      if (productsListType !== currentProductListType) {
-        productsListType = currentProductListType;
+      if (products_list_type !== current_product_list_type) {
+        products_list_type = current_product_list_type;
         position = 1;
       }
       $this.data('position', position++);
-      $this.data('list', currentProductListType);
+      $this.data('list', current_product_list_type);
     });
 
     var event_data = {
-      'event': 'EECproductImpression',
-      'ecommerce': {
-        'currencyCode': $products.first().data('currency'),
-        'impressions': shopAnalytics.getProductsData($products)
+      event: 'EECproductImpression',
+      ecommerce: {
+        currencyCode: $products.first().data('currency'),
+        impressions: shopAnalytics.getProductsData($products)
       }
     };
-    shopAnalytics.postToDataLayer(dataLayer, event_data);
+    shopAnalytics.postToDataLayer(event_data);
   }
 
   /**
-   * Reacts to a click on a product.
+   * Retrieves data details about the product the user clicked on.
    */
   function onProductClick() {
     var $products = $(this).closest('.product').find('.shop-analytics-product-details');
     var list_type = $products.first().data('list');
     var event_data = {
-      'event': 'EECproductClick',
-      'ecommerce': {
-        'click': {
+      event: 'EECproductClick',
+      ecommerce: {
+        click: {
           actionField: {
             list: list_type
           },
-          'products': shopAnalytics.getProductsData($products)
+          products: shopAnalytics.getProductsData($products)
         }
       }
     };
     // Save the type of list where the clicked product is displayed.
     Cookies.set('shop-analytics-list-type', list_type, new Date(new Date().getTime() + 10 * 60 * 1000));
-    shopAnalytics.postToDataLayer(dataLayer, event_data);
+    shopAnalytics.postToDataLayer(event_data);
   }
 
   /**
-   * Reacts to removal of all products from cart.
+   * Retrieves details of all products in the cart when it is emptied.
    */
   function onEmptyCart() {
     var $cart_items = $('.cart .cart_item td.product-remove .remove');
@@ -146,7 +160,7 @@ document.shopAnalytics = {
   }
 
   /**
-   * Reacts to removal of a single product from cart.
+   * Retrieves details of a single product when it is removed from cart.
    */
   function onRemoveSingleProduct() {
     updateCartItemsQuantity($(this));
@@ -170,16 +184,15 @@ document.shopAnalytics = {
    */
   function removeProductsFromCart($products) {
     var event_data = {
-      'event': 'EECremoveFromCart',
-      'ecommerce': {
-        'remove': {
-          'products': shopAnalytics.getProductsData($products)
+      event: 'EECremoveFromCart',
+      ecommerce: {
+        remove: {
+          products: shopAnalytics.getProductsData($products)
         }
       }
     };
-    // Get product quantity removed.
 
-    shopAnalytics.postToDataLayer(dataLayer, event_data);
+    shopAnalytics.postToDataLayer(event_data);
   };
 
-})(window.dataLayer, jQuery);
+})(jQuery);

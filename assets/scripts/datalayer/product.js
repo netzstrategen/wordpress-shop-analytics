@@ -1,6 +1,6 @@
 'use strict';
 
-(function (dataLayer, $) {
+(function ($) {
   var shopAnalytics = document.shopAnalytics;
 
   $(onLoad);
@@ -16,13 +16,13 @@
     // Get the list type where this product was displayed on when clicked.
     var list_type = Cookies.get('shop-analytics-list-type');
     var event_data = {
-      'event': 'EECproductDetailView',
-      'ecommerce': {
-        'detail': {
-          'actionField': {
-            'list': 'Product detail'
+      event: 'EECproductDetailView',
+      ecommerce: {
+        detail: {
+          actionField: {
+            list: 'Product detail'
           },
-          'products': shopAnalytics.getProductsData($products)
+          products: shopAnalytics.getProductsData($products)
         }
       }
     };
@@ -30,7 +30,7 @@
       event_data.ecommerce.detail.actionField.list = list_type;
       Cookies.remove('shop-analytics-list-type');
     }
-    shopAnalytics.postToDataLayer(dataLayer, event_data);
+    shopAnalytics.postToDataLayer(event_data);
   }
 
   /**
@@ -52,11 +52,11 @@
     var $products = $('.cart .shop-analytics-product-details');
     var variation;
     var event_data = {
-      'event': 'EECaddToCart',
-      'ecommerce': {
-        'currencyCode': $products.first().data('currency'),
-        'add': {
-          'products': shopAnalytics.getProductsData($products)
+      event: 'EECaddToCart',
+      ecommerce: {
+        currencyCode: $products.first().data('currency'),
+        add: {
+          products: shopAnalytics.getProductsData($products)
         }
       }
     };
@@ -64,7 +64,7 @@
     if (variation) {
       event_data.ecommerce.add.products[0].variant = variation;
     }
-    shopAnalytics.postToDataLayer(dataLayer, event_data);
+    shopAnalytics.postToDataLayer(event_data);
   };
 
   /**
@@ -74,14 +74,14 @@
    *   Comma-separated list of selected variation attributes.
    */
   function getProductVariationAttributes() {
-    var variation = '';
+    var variations = [];
 
     $('.variations_form option:selected').each(function () {
       if ($(this).val().trim()) {
-        variation += $(this).text().trim() + ', ';
+        variations.push($(this).text().trim());
       }
     });
-    return variation.slice(0, -2);
+    return variations.join(', ');
   }
 
-})(window.dataLayer, jQuery);
+})(jQuery);

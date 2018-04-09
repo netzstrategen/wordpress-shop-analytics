@@ -1,45 +1,45 @@
 "use strict";
 
-!function(t, a) {
-    function e() {
-        var e = a(".cart .shop-analytics-product-details"), i = Cookies.get("shop-analytics-list-type"), o = {
+!function(t) {
+    function a() {
+        var a = t(".cart .shop-analytics-product-details"), e = Cookies.get("shop-analytics-list-type"), i = {
             event: "EECproductDetailView",
             ecommerce: {
                 detail: {
                     actionField: {
                         list: "Product detail"
                     },
-                    products: s.getProductsData(e)
+                    products: c.getProductsData(a)
                 }
             }
         };
-        i && (o.ecommerce.detail.actionField.list = i, Cookies.remove("shop-analytics-list-type")), 
-        s.postToDataLayer(t, o);
+        e && (i.ecommerce.detail.actionField.list = e, Cookies.remove("shop-analytics-list-type")), 
+        c.postToDataLayer(i);
+    }
+    function e() {
+        var a = t(this);
+        a.closest(".quantity").siblings(".shop-analytics-product-details").data("quantity", a.val());
     }
     function i() {
-        var t = a(this);
-        t.closest(".quantity").siblings(".shop-analytics-product-details").data("quantity", t.val());
-    }
-    function o() {
-        if (!a(this).is(".disabled")) {
-            var e, i = a(".cart .shop-analytics-product-details"), o = {
+        if (!t(this).is(".disabled")) {
+            var a, e = t(".cart .shop-analytics-product-details"), i = {
                 event: "EECaddToCart",
                 ecommerce: {
-                    currencyCode: i.first().data("currency"),
+                    currencyCode: e.first().data("currency"),
                     add: {
-                        products: s.getProductsData(i)
+                        products: c.getProductsData(e)
                     }
                 }
             };
-            e = c(), e && (o.ecommerce.add.products[0].variant = e), s.postToDataLayer(t, o);
+            a = o(), a && (i.ecommerce.add.products[0].variant = a), c.postToDataLayer(i);
         }
     }
-    function c() {
-        var t = "";
-        return a(".variations_form option:selected").each(function() {
-            a(this).val().trim() && (t += a(this).text().trim() + ", ");
-        }), t.slice(0, -2);
+    function o() {
+        var a = [];
+        return t(".variations_form option:selected").each(function() {
+            t(this).val().trim() && a.push(t(this).text().trim());
+        }), a.join(", ");
     }
-    var s = document.shopAnalytics;
-    a(e), a(document).on("change", ".cart .quantity .qty", i).on("click", ".single_add_to_cart_button", o);
-}(window.dataLayer, jQuery);
+    var c = document.shopAnalytics;
+    t(a), t(document).on("change", ".cart .quantity .qty", e).on("click", ".single_add_to_cart_button", i);
+}(jQuery);
