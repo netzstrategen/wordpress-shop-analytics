@@ -52,8 +52,8 @@ class Plugin {
       add_filter('woocommerce_cart_item_remove_link', __NAMESPACE__ . '\WooCommerce::woocommerce_cart_item_remove_link', 10, 2);
 
       // Add a hidden HTML div element with product details as data attributes.
-      add_action('woocommerce_shop_loop_item_title', __NAMESPACE__ . '\WooCommerce::addProductDetailsHtmlDataAttr');
-      add_action('woocommerce_after_add_to_cart_button', __NAMESPACE__ . '\WooCommerce::addProductDetailsHtmlDataAttr');
+      add_action('woocommerce_shop_loop_item_title', __NAMESPACE__ . '\WooCommerce::addImpressionsProductDetailsHtmlDataAttr');
+      add_action('woocommerce_after_add_to_cart_button', __NAMESPACE__ . '\WooCommerce::addSingleProductDetailsHtmlDataAttr');
       add_action('woocommerce_thankyou', __NAMESPACE__ . '\WooCommerce::addOrderDetailsHtmlDataAttr');
 
       // Enqueue Google Analytics Data Layer related scripts.

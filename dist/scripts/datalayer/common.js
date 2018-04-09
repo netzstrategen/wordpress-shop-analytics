@@ -11,7 +11,7 @@ document.shopAnalytics = {
                 brand: t.data("brand"),
                 category: t.data("category")
             }, o = t.data();
-            o.variation && (a.variant = o.variation), o.quantity && (a.quantity = parseInt(o.quantity)), 
+            o.variant && (a.variant = o.variant), o.quantity && (a.quantity = parseInt(o.quantity)), 
             o.position && (a.position = o.position), o.list && (a.list = o.list), e.push(a);
         }), e;
     },
@@ -29,17 +29,17 @@ document.shopAnalytics = {
             r.each(function(t) {
                 e(this).closest(".cart").length && r.splice(t, 1);
             }), r.each(function(t) {
-                var a = e(this), o = n.getProductsListType(a);
+                var a = e(this), o = i.getProductsListType(a);
                 s !== o && (s = o, c = 1), a.data("position", c++), a.data("list", o);
             });
-            var i = {
+            var n = {
                 event: "EECproductImpression",
                 ecommerce: {
                     currencyCode: r.first().data("currency"),
-                    impressions: n.getProductsData(r)
+                    impressions: i.getProductsData(r)
                 }
             };
-            n.postToDataLayer(t, i);
+            i.postToDataLayer(t, n);
         }
     }
     function o() {
@@ -50,19 +50,19 @@ document.shopAnalytics = {
                     actionField: {
                         list: o
                     },
-                    products: n.getProductsData(a)
+                    products: i.getProductsData(a)
                 }
             }
         };
         Cookies.set("shop-analytics-list-type", o, new Date(new Date().getTime() + 6e5)), 
-        n.postToDataLayer(t, r);
+        i.postToDataLayer(t, r);
     }
     function r() {
         var t = e(".cart .cart_item td.product-remove .remove");
-        s(t), i(t);
+        s(t), n(t);
     }
     function c() {
-        s(e(this)), i(e(this));
+        s(e(this)), n(e(this));
     }
     function s(t) {
         t.each(function() {
@@ -70,17 +70,17 @@ document.shopAnalytics = {
             t.data("quantity", e('[name="cart[' + a + '][qty]"]').val());
         });
     }
-    function i(e) {
+    function n(e) {
         var a = {
             event: "EECremoveFromCart",
             ecommerce: {
                 remove: {
-                    products: n.getProductsData(e)
+                    products: i.getProductsData(e)
                 }
             }
         };
-        n.postToDataLayer(t, a);
+        i.postToDataLayer(t, a);
     }
-    var n = document.shopAnalytics;
+    var i = document.shopAnalytics;
     e(a), e(document).ajaxComplete(a).on("click", ".products .product a", o).on("click", ".remove_from_cart_button, .woocommerce-cart-form .product-remove > a, .cart_item td.product-remove .remove", c).on("click", "th.product-remove .remove", r);
 }(window.dataLayer, jQuery);

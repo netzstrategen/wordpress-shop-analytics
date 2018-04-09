@@ -10,7 +10,6 @@ document.shopAnalytics = {
 
     $products.each(function () {
       var $this = jQuery(this);
-      var variation;
       var quantity;
       var product = {
         name: $this.data('name'),
@@ -20,8 +19,8 @@ document.shopAnalytics = {
         category: $this.data('category'),
       };
       var product_data = $this.data();
-      if (product_data.variation) {
-        product.variant = product_data.variation;
+      if (product_data.variant) {
+        product.variant = product_data.variant;
       }
       if (product_data.quantity) {
         product.quantity = parseInt(product_data.quantity);

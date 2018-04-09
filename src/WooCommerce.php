@@ -293,9 +293,17 @@ class WooCommerce {
   }
 
   /**
-   * Prints a hidden HTML div element with current product details as data attributes.
+   * Prints a hidden HTML div element with current single view product details as data attributes.
    */
-  public static function addProductDetailsHtmlDataAttr() {
+  public static function addSingleProductDetailsHtmlDataAttr() {
+    global $product;
+    echo static::getProductDetailsHtmlDataAttr($product, TRUE);
+  }
+
+  /**
+   * Prints a hidden HTML div element with impression product details as data attributes.
+   */
+  public static function addImpressionsProductDetailsHtmlDataAttr() {
     global $product;
     echo static::getProductDetailsHtmlDataAttr($product);
   }
@@ -303,14 +311,30 @@ class WooCommerce {
   /**
    * Builds a hidden HTML div element with product details as data attributes.
    *
-   * @param int $product
-   *   Product unique identifier.
+   * @param \WC_Product $product
+   *   Product instance.
+   * @param bool $is_detail_view
+   *   Given product is displayed in single product detail view.
+   *
+   * @return string
+   *   hidden HTML div element with product details as data attributes.
    */
-  public static function getProductDetailsHtmlDataAttr($product) {
-    $product_details = static::getProductDetails($product->get_id());
+  public static function getProductDetailsHtmlDataAttr(\WC_Product $product, $is_detail_view = FALSE) {
+    $product_id = $product->get_id();
+    $product_details = static::getProductDetails($product_id);
 
-    if ('variation' === $product->get_type()) {
-      $product_details['variant'] = wc_get_formatted_variation(wc_get_product($product)->get_variation_attributes(), TRUE);
+    if ('variable' === $product->get_type() && $is_detail_view) {
+      $attributes = $product->get_variation_attributes();
+      $selected_attributes = [];
+      foreach ($attributes as $attribute_name => $options) {
+        $attribute = isset($_REQUEST['attribute_' . sanitize_title($attribute_name)]) ? wc_clean(stripslashes(urldecode($_REQUEST['attribute_' . sanitize_title($attribute_name)]))) : '';
+        if ($attribute) {
+          $selected_attributes[] = get_term_by('slug', $attribute, $attribute_name)->name;
+        }
+      }
+      if ($selected_attributes) {
+        $product_details['variant'] = implode(', ', $selected_attributes);
+      }
     }
 
     $output = '<div class="shop-analytics-product-details" style="display:none;height:0;" ';
