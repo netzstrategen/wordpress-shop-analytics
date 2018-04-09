@@ -177,7 +177,7 @@ class Plugin {
    * Returns the wordpress user ID or hashed e-mail address of the current user.
    */
   public static function getCurrentUserID() {
-    // Probably change the hash method to get shorter hashes
+    // Probably change the hash method to get shorter hashes.
     $user = wp_get_current_user();
     return get_option('shop_analytics_user_id_email') ? sha1($user->user_email) : $user->ID;
   }
@@ -282,9 +282,12 @@ class Plugin {
    * Builds a string containing HTML data tags with the product attributes.
    *
    * @param array $attributes
+   *   Product attributes.
+   *
    * @return string
+   *   Product attributes as HTML data tags.
    */
-  public static function buildAttributesDataTags($attributes) {
+  public static function buildAttributesDataTags(array $attributes) {
     array_walk($attributes, function (&$value, $key) {
       if (!is_null($value) && '' !== trim($value)) {
         $value = "data-$key=\"" . esc_attr($value) . '"';

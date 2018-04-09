@@ -75,12 +75,6 @@ class WooCommerce {
   /**
    * Retrieves detailed information of a product.
    *
-   * @return array
-   *   List of product details.
-   */
-  /**
-   * Retrieves detailed information of a product.
-   *
    * @param int $product_id
    *   Product unique identifier.
    * @param bool $primary_category
@@ -89,7 +83,7 @@ class WooCommerce {
    * @return array
    *   Details about given product.
    */
-   public static function getProductDetails($product_id = 0, $primary_category = TRUE) {
+  public static function getProductDetails($product_id = 0, $primary_category = TRUE) {
     $product_id = $product_id ?: get_the_ID();
     $product = wc_get_product($product_id);
 
@@ -188,7 +182,7 @@ class WooCommerce {
     $primary_term_id = 0;
 
     // Check if primary category is defined by Yoast's wordpress-seo plugin.
-    if ( class_exists('\WPSEO_Primary_Term') ) {
+    if (class_exists('\WPSEO_Primary_Term')) {
       $wpseo_primary_term = new \WPSEO_Primary_Term('product_cat', get_the_id());
       $primary_term = $wpseo_primary_term->get_primary_term();
       if (!is_wp_error($term = get_term($primary_term))) {
