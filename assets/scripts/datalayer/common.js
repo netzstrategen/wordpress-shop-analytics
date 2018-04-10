@@ -146,7 +146,7 @@ document.shopAnalytics = {
       }
     };
     // Save the type of list where the clicked product is displayed.
-    Cookies.set('shop-analytics-list-type', list_type, new Date(new Date().getTime() + 10 * 60 * 1000));
+    localStorage.setItem('shop-analytics-list-type', list_type);
     shopAnalytics.postToDataLayer(event_data);
   }
 

@@ -14,7 +14,7 @@
   function onLoad() {
     var $products = $('.cart .shop-analytics-product-details');
     // Get the list type where this product was displayed on when clicked.
-    var list_type = Cookies.get('shop-analytics-list-type');
+    var list_type = localStorage.getItem('shop-analytics-list-type');
     var event_data = {
       event: 'EECproductDetailView',
       ecommerce: {
@@ -28,7 +28,7 @@
     };
     if (list_type) {
       event_data.ecommerce.detail.actionField.list = list_type;
-      Cookies.remove('shop-analytics-list-type');
+      localStorage.removeItem('shop-analytics-list-type');
     }
     shopAnalytics.postToDataLayer(event_data);
   }
