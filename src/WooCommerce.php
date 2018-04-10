@@ -13,20 +13,6 @@ namespace Netzstrategen\ShopAnalytics;
 class WooCommerce {
 
   /**
-   * Retrieves the current shop currency code.
-   *
-   * @return string
-   *   Currency code.
-   */
-  public static function getCurrency() {
-    $currency = '';
-    if (Plugin::isEcommerceTrackingEnabled() && function_exists('get_woocommerce_currency')) {
-      $currency = strtoupper(get_woocommerce_currency());
-    }
-    return $currency;
-  }
-
-  /**
    * Retrieves the current page type.
    *
    * @param int $post_id
@@ -36,9 +22,6 @@ class WooCommerce {
    *   Page type.
    */
   public static function getPageType($post_id) {
-    if (!Plugin::isEcommerceTrackingEnabled()) {
-      return '';
-    }
     if (is_product()) {
       return 'Product | ' . ucwords(wc_get_product($post_id)->get_type());
     }
@@ -106,7 +89,7 @@ class WooCommerce {
       'availability' => $product->is_in_stock() ? __('In stock', Plugin::L10N) : __('Out of stock', Plugin::L10N),
       'stock' => (int) $product->get_stock_quantity(),
     ];
-    if ($currency = static::getCurrency()) {
+    if ($currency = get_woocommerce_currency()) {
       $details['currency'] = $currency;
     }
     if (!is_wp_error($delivery_time = get_term(get_post_meta($product_id, '_lieferzeit', TRUE))) && (isset($delivery_time->name))) {
@@ -190,7 +173,12 @@ class WooCommerce {
       }
     }
 
-    if (!$primary_term_id && $terms = wc_get_product_terms($product_id, 'product_cat', ['orderby' => 'parent', 'order' => 'DESC'])) {
+    $args = [
+      'orderby' => 'parent',
+      'order' => 'DESC',
+    ];
+    $terms = wc_get_product_terms($product_id, 'product_cat', $args);
+    if (!$primary_term_id && $terms) {
       // Consider the first category assigned to product as primary.
       $primary_term_id = $terms[0]->term_id;
     }
@@ -236,7 +224,11 @@ class WooCommerce {
    *   List of category parents.
    */
   public static function getProductCategoriesParentsList($product_id, $categories_separator = ' > ', $paths_separator = ' | ') {
-    $terms = wc_get_product_terms($product_id, 'product_cat', ['orderby' => 'parent', 'order' => 'DESC']);
+    $args = [
+      'orderby' => 'parent',
+      'order' => 'DESC',
+    ];
+    $terms = wc_get_product_terms($product_id, 'product_cat', $args);
     $categories = '';
     foreach ($terms as $term) {
       $categories .= static::getProductCategoryParents($term->term_id, $categories_separator) . $paths_separator;
@@ -251,7 +243,7 @@ class WooCommerce {
    *   TRUE if current page is a product attribute page, FALSE otherwhise.
    */
   public static function isAttribute() {
-    return is_tax() && preg_match('/^pa_/', get_query_var('taxonomy'));
+    return is_tax() && preg_match('@^pa_@', get_query_var('taxonomy'));
   }
 
   /**
@@ -264,7 +256,12 @@ class WooCommerce {
    *   List of product brands.
    */
   public static function getProductBrand($product_id) {
-    return !is_wp_error($brands = wp_get_post_terms($product_id, 'product_brand', ['orderby' => 'name', 'fields' => 'names'])) ? implode(' | ', $brands) : '';
+    $args = [
+      'orderby' => 'name',
+      'fields' => 'names',
+    ];
+    $brands = wp_get_post_terms($product_id, 'product_brand', $args);
+    return !is_wp_error($brands) ? implode(' | ', $brands) : '';
   }
 
   /**
@@ -369,12 +366,12 @@ class WooCommerce {
       'payment-method' => $order_data['payment_method_title'],
     ];
 
-    $html = '<div class="shop-analytics-order-details" style="display:none;height:0;"';
+    $html = '<div class="shop-analytics-order-details" style="display:none;height:0;" ';
     $html .= Plugin::buildAttributesDataTags($order_details) . '>';
 
     foreach ($order->get_items() as $order_item) {
       $product = $order_item->get_product();
-      $html .= str_replace('></div', ' data-quantity="' . $order_item->get_quantity() . '"></div', static::getProductDetailsHtmlDataAttr($product));
+      $html .= str_replace('></div>', ' data-quantity="' . $order_item->get_quantity() . '"></div>', static::getProductDetailsHtmlDataAttr($product));
     }
     $html .= '</div>';
 

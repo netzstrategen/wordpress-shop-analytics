@@ -116,38 +116,40 @@ class Plugin {
     if ($wp_query->queried_object) {
       $attributes['page-type'] = static::getPageType($wp_query->queried_object->ID);
     }
-    // Adds shop market code. Temporary set to the fallback value defined in the plugin settings.
+    // Adds shop market code. Set to the the plugin settings default value if undefined.
     $attributes['market'] = get_option('shop_analytics_market_default') ?: 'GLOBAL';
 
     if (static::isEcommerceTrackingEnabled()) {
       // Adds currency code data attribute.
-      if ($currency = WooCommerce::getCurrency()) {
-        $attributes['currency'] = $currency;
-      }
-      // Adds product category page path attribute.
+      $attributes['currency'] = get_woocommerce_currency();
+
+      $is_tax = FALSE;
       if (is_product_category() && $category_page_path = WooCommerce::getProductCategoryParents($wp_query->queried_object->term_id, ' > ')) {
+        $is_tax = TRUE;
+        // Adds product category page path attribute.
         $attributes['product-category'] = $category_page_path;
       }
-      // Adds products count in taxonomy attribute.
-      if ($products_count = WooCommerce::getProductCountInTaxonomy()) {
-        $attributes['product-count'] = $products_count;
-      }
-      // Adds product tag attribute.
-      if (is_product_tag() && $wp_query->queried_object->name) {
+      else if (is_product_tag() && $wp_query->queried_object->name) {
+        $is_tax = TRUE;
+        // Adds product tag attribute.
         $attributes['product-tag'] = $wp_query->queried_object->name;
       }
-      // Adds product attribute page attribute.
-      if (WooCommerce::isAttribute() && $wp_query->queried_object->name) {
+      else if (WooCommerce::isAttribute() && $wp_query->queried_object->name) {
+        $is_tax = TRUE;
+        // Adds product attribute page attribute.
         $attributes['product-attribute'] = $wp_query->queried_object->name;
       }
-      // Adds product details attributes.
-      if (is_product() && $product_details = WooCommerce::getProductDetails(get_the_ID(), FALSE)) {
+      else if (is_product() && $product_details = WooCommerce::getProductDetails(get_the_ID(), FALSE)) {
+        // Adds product details attributes.
         foreach (WooCommerce::getProductAttributes(wc_get_product($product_details['id'])) as $attribute) {
           $product_details[$attribute['key']] = $attribute['value'];
+          $attributes['product-' . $attribute['key']] = $attribute['value'] ?: '';
         }
-        foreach ($product_details as $key => $value) {
-          $attributes['product-' . $key] = $value ?: '';
-        }
+      }
+
+      // Adds products count in taxonomy attribute.
+      if ($is_tax) {
+        $attributes['product-count'] = $wp_query->queried_object->count;
       }
     }
 
@@ -198,7 +200,7 @@ class Plugin {
    * @return string
    */
   public static function getPageType($post_id) {
-    if ($page_type = WooCommerce::getPageType($post_id)) {
+    if (Plugin::isEcommerceTrackingEnabled() && $page_type = WooCommerce::getPageType($post_id)) {
       return $page_type;
     }
     elseif (is_front_page()) {
@@ -290,7 +292,7 @@ class Plugin {
   public static function buildAttributesDataTags(array $attributes) {
     array_walk($attributes, function (&$value, $key) {
       if (!is_null($value) && '' !== trim($value)) {
-        $value = "data-$key=\"" . esc_attr($value) . '"';
+        $value = 'data-' . $key . '="' . esc_attr($value) . '"';
       }
     });
     return implode(' ', $attributes);
