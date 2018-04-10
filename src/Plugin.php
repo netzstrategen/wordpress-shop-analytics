@@ -264,6 +264,7 @@ class Plugin {
     $scripts = static::getBaseUrl() . '/dist/scripts/datalayer';
 
     wp_enqueue_script($handle . '-common', "$scripts/common.js", ['jquery'], FALSE, FALSE);
+    wp_localize_script($handle . '-common', 'datalayer_console_log', intval(get_option('shop_analytics_datalayer_logging')));
 
     if (is_product()) {
       wp_enqueue_script($handle . '-product', "$scripts/product.js", [$handle . '-common'], FALSE, TRUE);
@@ -271,6 +272,7 @@ class Plugin {
 
     if (is_wc_endpoint_url()) {
       wp_enqueue_script($handle . '-endpoints', "$scripts/endpoints.js", [$handle . '-common'], FALSE, TRUE);
+      // Inject woocoomerce endpoint identifier into frontend.
       if (is_wc_endpoint_url('order-pay')) {
         wp_localize_script($handle . '-endpoints', 'endpoint_id', 'order-pay');
       }

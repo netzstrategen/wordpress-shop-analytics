@@ -31,6 +31,7 @@ class Admin {
     register_setting('shop-analytics-settings', 'shop_analytics_disable_user_tracking');
     register_setting('shop-analytics-settings', 'shop_analytics_track_ecommerce');
     register_setting('shop-analytics-settings', 'shop_analytics_market_default');
+    register_setting('shop-analytics-settings', 'shop_analytics_datalayer_logging');
   }
 
   /**

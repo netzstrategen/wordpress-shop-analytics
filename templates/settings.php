@@ -93,6 +93,21 @@ global $wp_roles;
           >
         </td>
       </tr>
+      <tr class="form-field">
+        <th scope="row">
+          <label for="shop-analytics-datalayer-logging"><?= __('Enable GA dataLayer console logging', Plugin::L10N) ?></label>
+        </th>
+        <td>
+          <input
+            id="shop-analytics-datalayer-logging"
+            name="shop_analytics_datalayer_logging"
+            type="checkbox"
+            value="1"
+            <?php checked(get_option('shop_analytics_datalayer_logging')); ?>
+            <?php disabled(Plugin::isWooCommerceActive(), FALSE); ?>
+          >
+        </td>
+      </tr>
     </table>
     <?php submit_button(); ?>
   </form>
