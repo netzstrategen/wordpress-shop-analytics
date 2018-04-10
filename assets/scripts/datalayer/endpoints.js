@@ -5,8 +5,14 @@
 
   $(onLoad);
 
+  /**
+   * Registers woocommerce endpoint events on page load.
+   * endpoint_id is injected from backend using wp_localize_script().
+   */
   function onLoad() {
-    onOrderReceived();
+    if ('order-received' === endpoint_id) {
+      onOrderReceived();
+    }
   }
 
   /**

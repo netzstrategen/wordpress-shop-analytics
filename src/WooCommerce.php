@@ -43,19 +43,6 @@ class WooCommerce {
   }
 
   /**
-   * Retrieves current taxonomy product count.
-   *
-   * @return int
-   *   Taxonomy product count.
-   */
-  public static function getProductCountInTaxonomy() {
-    if (is_product_category() || is_product_tag() || static::isAttribute()) {
-      return get_queried_object()->count;
-    }
-    return FALSE;
-  }
-
-  /**
    * Retrieves detailed information of a product.
    *
    * @param int $product_id
