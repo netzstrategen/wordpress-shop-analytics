@@ -65,9 +65,14 @@ document.shopAnalytics = {
 
   /**
    * Pushes event data to Google Analytics data layer.
+   * datalayer_console_log is injected from backend
+   * using wp_localize_script().
    */
   postToDataLayer: function(event_data) {
     if ('object' === typeof event_data) {
+      if (datalayer_console_log) {
+        console.dir(event_data);
+      }
       window.dataLayer.push(event_data);
     }
   }
