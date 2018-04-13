@@ -14,9 +14,9 @@
                         revenue: String(a.data("revenue")),
                         tax: String(a.data("tax")),
                         shipping: String(a.data("shipping"))
-                    }
-                },
-                products: i.getProductsData(e)
+                    },
+                    products: i.getProductsData(e)
+                }
             }
         };
         i.postToDataLayer(n);
