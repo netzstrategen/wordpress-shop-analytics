@@ -30,9 +30,9 @@
             revenue: String($order.data('revenue')),
             tax: String($order.data('tax')),
             shipping: String($order.data('shipping')),
-          }
-        },
-        products: shopAnalytics.getProductsData($products)
+          },
+          products: shopAnalytics.getProductsData($products)
+        }
       }
     };
     shopAnalytics.postToDataLayer(event_data);
