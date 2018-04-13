@@ -19,7 +19,8 @@ window.dataLayer = window.dataLayer || [], document.shopAnalytics = {
         return t.closest(".cross-sells").length ? "Cross-sells products" : t.closest(".related").length ? "Related products" : "Product Category";
     },
     postToDataLayer: function(t) {
-        "object" == typeof t && (datalayer_console_log && console.dir(t), window.dataLayer.push(t));
+        "object" == typeof t && (shop_analytics_settings.datalayer_console_log && console.dir(t), 
+        window.dataLayer.push(t));
     }
 }, function(t) {
     function a(a, e) {

@@ -70,7 +70,7 @@ document.shopAnalytics = {
    */
   postToDataLayer: function(event_data) {
     if ('object' === typeof event_data) {
-      if (datalayer_console_log) {
+      if (shop_analytics_settings.datalayer_console_log) {
         console.dir(event_data);
       }
       window.dataLayer.push(event_data);
