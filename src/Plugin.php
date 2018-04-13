@@ -17,7 +17,7 @@ class Plugin {
    *
    * @var string
    */
-  const PREFIX = 'shop-analytics';
+  const PREFIX = 'shop_analytics';
 
   /**
    * Gettext localization domain.
@@ -260,24 +260,26 @@ class Plugin {
    * Loads Google Analytics Data Layer related scripts.
    */
   public static function enqueueGaDataLayerScripts() {
-    $handle = Plugin::PREFIX . '-datalayer';
+    $handle = Plugin::PREFIX . '_datalayer';
     $scripts = static::getBaseUrl() . '/dist/scripts/datalayer';
 
-    wp_enqueue_script($handle . '-common', "$scripts/common.js", ['jquery'], FALSE, FALSE);
-    wp_localize_script($handle . '-common', 'datalayer_console_log', intval(get_option('shop_analytics_datalayer_logging')));
+    wp_enqueue_script($handle . '_common', "$scripts/common.js", ['jquery'], FALSE, FALSE);
+    wp_localize_script($handle . '_common', Plugin::PREFIX . '_settings', [
+      'datalayer_console_log' => intval(get_option('shop_analytics_datalayer_logging'))
+    ]);
 
     if (is_product()) {
-      wp_enqueue_script($handle . '-product', "$scripts/product.js", [$handle . '-common'], FALSE, TRUE);
+      wp_enqueue_script($handle . '_product', "$scripts/product.js", [$handle . '_common'], FALSE, TRUE);
     }
 
     if (is_wc_endpoint_url()) {
-      wp_enqueue_script($handle . '-endpoints', "$scripts/endpoints.js", [$handle . '-common'], FALSE, TRUE);
+      wp_enqueue_script($handle . '_endpoints', "$scripts/endpoints.js", [$handle . '_common'], FALSE, TRUE);
       // Inject woocoomerce endpoint identifier into frontend.
-      if (is_wc_endpoint_url('order-pay')) {
-        wp_localize_script($handle . '-endpoints', 'endpoint_id', 'order-pay');
+      if (is_wc_endpoint_url('order_pay')) {
+        wp_localize_script($handle . '_endpoints', Plugin::PREFIX . '_endpoint_data', ['step' => 'order_pay']);
       }
       if (is_wc_endpoint_url('order-received')) {
-        wp_localize_script($handle . '-endpoints', 'endpoint_id', 'order-received');
+        wp_localize_script($handle . '_endpoints', Plugin::PREFIX . '_endpoint_data', ['step' => 'order_received']);
       }
     }
   }
