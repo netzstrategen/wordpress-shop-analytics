@@ -28,8 +28,6 @@ window.dataLayer = window.dataLayer || [], document.shopAnalytics = {
         if (o.length && !o.parents(".shop-analytics-order-details").length) {
             var r = 1, c = "";
             o.each(function(a) {
-                t(this).closest(".cart").length && o.splice(a, 1);
-            }), o.each(function(a) {
                 var e = t(this), o = n.getProductsListType(e);
                 c !== o && (c = o, r = 1), e.data("position", r++), e.data("list", o);
             });

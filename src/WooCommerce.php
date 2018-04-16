@@ -315,7 +315,9 @@ class WooCommerce {
       }
     }
 
-    $output = '<div class="shop-analytics-product-details" style="display:none;height:0;" ';
+    $class = $is_detail_view ? 'shop-analytics-single-product-details' : 'shop-analytics-product-details';
+
+    $output = '<div class="' . $class . '" style="display:none;height:0;" ';
     $output .= Plugin::buildAttributesDataTags($product_details) . '>';
     $output .= '</div>';
 

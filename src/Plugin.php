@@ -53,7 +53,7 @@ class Plugin {
 
       // Add a hidden HTML div element with product details as data attributes.
       add_action('woocommerce_shop_loop_item_title', __NAMESPACE__ . '\WooCommerce::addImpressionsProductDetailsHtmlDataAttr');
-      add_action('woocommerce_after_add_to_cart_button', __NAMESPACE__ . '\WooCommerce::addSingleProductDetailsHtmlDataAttr');
+      add_action('woocommerce_single_product_summary', __NAMESPACE__ . '\WooCommerce::addSingleProductDetailsHtmlDataAttr');
       add_action('woocommerce_thankyou', __NAMESPACE__ . '\WooCommerce::addOrderDetailsHtmlDataAttr');
 
       // Enqueue Google Analytics Data Layer related scripts.

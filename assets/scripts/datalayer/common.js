@@ -90,9 +90,9 @@ document.shopAnalytics = {
 
   /**
    * Collects details about products displayed on the page when loaded or added
-   * dynamically with AJAX. Skips the products displayed in the cart content listing.
-   * Each product is assigned a position as an index to its order in the list/block
-   * it is contained (Related products, Cross-sells, Category).
+   * dynamically with AJAX. Each product is assigned a position as an index to
+   * its order in the list/block it is contained (Related products, Cross-sells,
+   * Category).
    */
   function onLoad(event, xhr) {
     var $products = $(xhr && xhr.responseText ? xhr.responseText : document).find('.shop-analytics-product-details');
@@ -100,17 +100,10 @@ document.shopAnalytics = {
       return;
     }
 
-    // Remove single product view instances from product impressions list and assign
-    // a list type (Related products, Cross-sells, Category) and a position value
-    // (index of the product in the list it belongs) to the rest.
+    // Assign a list type (Related products, Cross-sells, Category) and a position
+    // value (index of the product in the list it belongs) to the rest.
     var position = 1;
     var products_list_type = '';
-    var remove = [];
-    $products.each(function(index) {
-      if ($(this).closest('.cart').length) {
-        $products.splice(index, 1);
-      }
-    });
     $products.each(function(index) {
       var $this = $(this);
       var current_product_list_type = shopAnalytics.getProductsListType($this);

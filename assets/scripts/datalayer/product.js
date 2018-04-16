@@ -12,7 +12,10 @@
    * Reacts to loading of a product details page.
    */
   function onLoad() {
-    var $products = $('.cart .shop-analytics-product-details');
+    var $products = $('.shop-analytics-single-product-details');
+    if (!$products.length) {
+      return;
+    }
     // Get the list type where this product was displayed on when clicked.
     var list_type = localStorage.getItem('shop-analytics-list-type');
     var event_data = {
@@ -38,7 +41,7 @@
    */
   function updateProductQuantity() {
     var $this = $(this);
-    $this.closest('.quantity').siblings('.shop-analytics-product-details').data('quantity', $this.val());
+    $this.closest('.cart').siblings('.shop-analytics-single-product-details').data('quantity', $this.val());
   }
 
   /**
@@ -49,7 +52,7 @@
     if ($this.is('.disabled')) {
       return;
     }
-    var $products = $('.cart .shop-analytics-product-details');
+    var $products = $('.shop-analytics-single-product-details');
     var variation;
     var event_data = {
       event: 'EECaddToCart',
