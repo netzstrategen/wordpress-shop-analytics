@@ -24,12 +24,18 @@ document.shopAnalytics = {
       var $this = jQuery(this);
       var product = {
         name: $this.data('name'),
-        id: String($this.data('sku')),
+        id: String($this.data('id')),
         price: $this.data('price'),
-        brand: $this.data('brand'),
         category: $this.data('category'),
       };
       var product_data = $this.data();
+
+      if (product_data.sku) {
+        product.sku = String(product_data.sku);
+      }
+      if (product_data.brand) {
+        product.brand = product_data.brand;
+      }
       if (product_data.variant) {
         product.variant = product_data.variant;
       }
