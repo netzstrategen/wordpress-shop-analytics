@@ -22,14 +22,17 @@ document.shopAnalytics = {
 
     $products.each(function () {
       var $this = jQuery(this);
-      var product = {
-        name: $this.data('name'),
-        id: String($this.data('sku')),
-        price: $this.data('price'),
-        brand: $this.data('brand'),
-        category: $this.data('category'),
-      };
       var product_data = $this.data();
+      var product = {
+        name: product_data.name,
+        id: String(product_data.sku),
+        price: product_data.price,
+        category: product_data.category,
+      };
+
+      if (product_data.brand) {
+        product.brand = product_data.brand;
+      }
       if (product_data.variant) {
         product.variant = product_data.variant;
       }
