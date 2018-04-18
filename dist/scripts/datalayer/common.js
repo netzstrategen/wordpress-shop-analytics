@@ -6,13 +6,13 @@ window.dataLayer = window.dataLayer || [], document.shopAnalytics = {
         return t.each(function() {
             var t = jQuery(this), e = {
                 name: t.data("name"),
-                id: String(t.data("id")),
+                id: String(t.data("sku")),
                 price: t.data("price"),
+                brand: t.data("brand"),
                 category: t.data("category")
             }, o = t.data();
-            o.sku && (e.sku = String(o.sku)), o.brand && (e.brand = o.brand), o.variant && (e.variant = o.variant), 
-            o.quantity && (e.quantity = parseInt(o.quantity)), o.position && (e.position = o.position), 
-            o.list && (e.list = o.list), a.push(e);
+            o.variant && (e.variant = o.variant), o.quantity && (e.quantity = parseInt(o.quantity)), 
+            o.position && (e.position = o.position), o.list && (e.list = o.list), a.push(e);
         }), a;
     },
     getProductsListType: function(t) {
