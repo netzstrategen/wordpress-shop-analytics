@@ -129,20 +129,22 @@ class Plugin {
         // Adds product category page path attribute.
         $attributes['product-category'] = $category_page_path;
       }
-      else if (is_product_tag() && $wp_query->queried_object->name) {
+      elseif (is_product_tag() && $wp_query->queried_object->name) {
         $is_tax = TRUE;
         // Adds product tag attribute.
         $attributes['product-tag'] = $wp_query->queried_object->name;
       }
-      else if (WooCommerce::isAttribute() && $wp_query->queried_object->name) {
+      elseif (WooCommerce::isAttribute() && $wp_query->queried_object->name) {
         $is_tax = TRUE;
         // Adds product attribute page attribute.
         $attributes['product-attribute'] = $wp_query->queried_object->name;
       }
-      else if (is_product() && $product_details = WooCommerce::getProductDetails(get_the_ID(), FALSE)) {
-        // Adds product details attributes.
+      elseif (is_product() && $product_details = WooCommerce::getProductDetails(get_the_ID(), FALSE)) {
+        // Adds product details and attributes.
+        foreach ($product_details as $key => $detail) {
+          $attributes['product-' . str_replace('_', '-', $key)] = $detail;
+        }
         foreach (WooCommerce::getProductAttributes(wc_get_product($product_details['id'])) as $attribute) {
-          $product_details[$attribute['key']] = $attribute['value'];
           $attributes['product-' . $attribute['key']] = $attribute['value'] ?: '';
         }
       }
