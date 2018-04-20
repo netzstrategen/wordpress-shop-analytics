@@ -27,9 +27,9 @@
         purchase: {
           actionField: {
             id: String($order.data('id')),
-            revenue: String($order.data('revenue')),
-            tax: String($order.data('tax')),
-            shipping: String($order.data('shipping')),
+            revenue: String($order.data('revenue')).replace(/,/g, ''),
+            tax: String($order.data('tax')).replace(/,/g, ''),
+            shipping: String($order.data('shipping')).replace(/,/g, ''),
           },
           products: shopAnalytics.getProductsData($products)
         }

@@ -1,26 +1,26 @@
 "use strict";
 
-!function(t) {
-    function a() {
-        "order_received" === shop_analytics_endpoint_data.step && e();
+!function(e) {
+    function t() {
+        "order_received" === shop_analytics_endpoint_data.step && a();
     }
-    function e() {
-        var a = t(document).find(".shop-analytics-order-details"), e = a.find(".shop-analytics-product-details"), n = {
+    function a() {
+        var t = e(document).find(".shop-analytics-order-details"), a = t.find(".shop-analytics-product-details"), n = {
             event: "EECpurchase",
             ecommerce: {
                 purchase: {
                     actionField: {
-                        id: String(a.data("id")),
-                        revenue: String(a.data("revenue")),
-                        tax: String(a.data("tax")),
-                        shipping: String(a.data("shipping"))
+                        id: String(t.data("id")),
+                        revenue: String(t.data("revenue")).replace(/,/g, ""),
+                        tax: String(t.data("tax")).replace(/,/g, ""),
+                        shipping: String(t.data("shipping")).replace(/,/g, "")
                     },
-                    products: i.getProductsData(e)
+                    products: i.getProductsData(a)
                 }
             }
         };
         i.postToDataLayer(n);
     }
     var i = document.shopAnalytics;
-    t(a);
+    e(t);
 }(jQuery);
