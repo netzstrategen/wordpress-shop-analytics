@@ -63,13 +63,13 @@ class WooCommerce {
     else {
       $category = static::getProductCategoriesParentsList($product_id);
     }
-
+error_log(print_r($product->get_price(), TRUE));
     $details = [
       'id' => $product_id,
       'sku' => $product->get_sku() ?: $product_id,
       'name' => str_replace(["'", '"'], '', wp_strip_all_tags($product->get_name(), TRUE)),
       'type' => $product->get_type(),
-      'price' => number_format($product->get_price(), 2),
+      'price' => number_format($product->get_price() ?: 0, 2),
       'category' => $category,
       'brand' => static::getProductBrand($product_id),
       'gtin' => ($gtin = get_post_meta($product_id, '_custom_gtin', TRUE)) ? $gtin : '' ,
