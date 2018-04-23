@@ -63,7 +63,7 @@ class WooCommerce {
     else {
       $category = static::getProductCategoriesParentsList($product_id);
     }
-error_log(print_r($product->get_price(), TRUE));
+
     $details = [
       'id' => $product_id,
       'sku' => $product->get_sku() ?: $product_id,
