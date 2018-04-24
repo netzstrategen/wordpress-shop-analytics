@@ -69,7 +69,7 @@ class WooCommerce {
       'sku' => $product->get_sku() ?: $product_id,
       'name' => str_replace(["'", '"'], '', wp_strip_all_tags($product->get_name(), TRUE)),
       'type' => $product->get_type(),
-      'price' => number_format($product->get_price(), 2),
+      'price' => number_format($product->get_price() ?: 0, 2),
       'category' => $category,
       'brand' => static::getProductBrand($product_id),
       'gtin' => ($gtin = get_post_meta($product_id, '_custom_gtin', TRUE)) ? $gtin : '' ,
