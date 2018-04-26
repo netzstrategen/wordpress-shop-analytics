@@ -7,9 +7,9 @@ window.dataLayer = window.dataLayer || [], document.shopAnalytics = {
             var t = jQuery(this), a = t.data(), o = {
                 name: a.name,
                 id: String(a.sku),
+                price: a.price,
                 category: a.category
             };
-            a.price && (o.price = "string" == typeof a.price ? a.price.replace(/,/g, "") : a.price), 
             a.brand && (o.brand = a.brand), a.variant && (o.variant = a.variant), a.quantity && (o.quantity = parseInt(a.quantity)), 
             a.position && (o.position = a.position), a.list && (o.list = a.list), e.push(o);
         }), e;
