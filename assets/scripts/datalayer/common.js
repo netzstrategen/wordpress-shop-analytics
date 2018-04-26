@@ -26,10 +26,12 @@ document.shopAnalytics = {
       var product = {
         name: product_data.name,
         id: String(product_data.sku),
-        price: product_data.price.replace(/,/g, ''),
         category: product_data.category,
       };
-
+      if (product_data.price) {
+        // If product price is less than 1.000 it gets casted as a number, otherwise it's a string.
+        product.price = (typeof product_data.price === 'string') ? product_data.price.replace(/,/g, '') : product_data.price;
+      }
       if (product_data.brand) {
         product.brand = product_data.brand;
       }
