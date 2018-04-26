@@ -26,7 +26,7 @@ document.shopAnalytics = {
       var product = {
         name: product_data.name,
         id: String(product_data.sku),
-        price: product_data.price.replace(/,/g, ''),
+        price: product_data.price,
         category: product_data.category,
       };
 

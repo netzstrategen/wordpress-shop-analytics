@@ -7,7 +7,7 @@ window.dataLayer = window.dataLayer || [], document.shopAnalytics = {
             var t = jQuery(this), a = t.data(), o = {
                 name: a.name,
                 id: String(a.sku),
-                price: a.price.replace(/,/g, ""),
+                price: a.price,
                 category: a.category
             };
             a.brand && (o.brand = a.brand), a.variant && (o.variant = a.variant), a.quantity && (o.quantity = parseInt(a.quantity)), 
