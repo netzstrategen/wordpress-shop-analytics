@@ -244,10 +244,8 @@ class WooCommerce {
     if (!$tags || is_wp_error($tags)) {
       return FALSE;
     }
-    $tags_names = array_map(function ($tag) {
-      return $tag->name;
-    }, $tags);
-    return implode($separator, $tags_names);
+
+    return implode($separator, wp_list_pluck($tags, 'name'));
   }
 
   /**
