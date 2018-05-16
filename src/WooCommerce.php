@@ -76,6 +76,11 @@ class WooCommerce {
       'availability' => $product->is_in_stock() ? __('In stock', Plugin::L10N) : __('Out of stock', Plugin::L10N),
       'stock' => (int) $product->get_stock_quantity(),
     ];
+
+    if ($product_tags = static::getProductTagsList($product_id)) {
+      $details['tag'] = $product_tags;
+    }
+
     if ($currency = get_woocommerce_currency()) {
       $details['currency'] = $currency;
     }
@@ -221,6 +226,26 @@ class WooCommerce {
       $categories .= static::getProductCategoryParents($term->term_id, $categories_separator) . $paths_separator;
     }
     return rtrim($categories, $paths_separator);
+  }
+
+  /**
+   * Builds a list of all tags assigned to a product.
+   *
+   * @param int $product_id
+   *   Product unique identifier.
+   * @param string $separator
+   *   Separator between tags.
+   *
+   * @return string
+   *   List of category tags.
+   */
+  public static function getProductTagsList($product_id, $separator = ' | ') {
+    $tags = get_the_terms($product_id, 'product_tag');
+    if (!$tags || is_wp_error($tags)) {
+      return FALSE;
+    }
+
+    return implode($separator, wp_list_pluck($tags, 'name'));
   }
 
   /**
