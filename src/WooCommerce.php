@@ -392,4 +392,71 @@ class WooCommerce {
     return $html;
   }
 
+  /**
+   * Displays custom product name field for simple products.
+   *
+   * @implements woocommerce_product_options_general_product_data
+   */
+  public static function woocommerce_product_options_general_product_data() {
+    echo '<div class="options_group show_if_simple show_if_external">';
+    woocommerce_wp_text_input([
+      'id' => Plugin::PREFIX . '_custom_product_name',
+      'label' => __('Custom product name', Plugin::L10N),
+      'desc_tip' => 'true',
+      'description' => __('Custom product name used by Shop Analytics plugin.', Plugin::L10N),
+    ]);
+    echo '</div>';
+  }
+
+  /**
+   * Saves custom product name field for simple products.
+   *
+   * @implements woocommerce_process_product_meta
+   */
+  public static function woocommerce_process_product_meta($post_id) {
+    $field_name = Plugin::PREFIX . '_custom_product_name';
+
+    if (isset($_POST[$field_name])) {
+      if ($custom_product_name = $_POST[$field_name]) {
+        update_post_meta($post_id, $field_name, $custom_product_name);
+      }
+      else {
+        delete_post_meta($post_id, $field_name);
+      }
+    }
+  }
+
+  /**
+   * Displays custom product name field for product variations.
+   *
+   * @implements woocommerce_product_after_variable_attributes
+   */
+  public static function woocommerce_product_after_variable_attributes($loop, $variation_id, $variation) {
+    $field_name = Plugin::PREFIX . '_custom_product_name';
+
+    echo '<div style="clear:both;border-top:1px solid #eee">';
+    woocommerce_wp_text_input([
+      'id' => $field_name . '[' . $loop . ']',
+      'label' => __('Custom product name', Plugin::L10N),
+      'value' => get_post_meta($variation->ID, $field_name, TRUE),
+      'description' => __('Custom product name used by Shop Analytics plugin.', Plugin::L10N),
+    ]);
+    echo '</div>';
+  }
+
+  /**
+   * Saves custom product name field for product variations.
+   *
+   * @implements woocommerce_save_product_variation
+   */
+  public static function woocommerce_save_product_variation($variation_id, $loop) {
+    $field_name = Plugin::PREFIX . '_custom_product_name';
+
+    if (isset($_POST[$field_name][$loop], $_POST['variable_post_id'])) {
+      $new_value = $_POST[$field_name][$loop];
+      $variable_post_id = $_POST['variable_post_id'];
+      update_post_meta($variation_id, $field_name, $new_value);
+    }
+  }
+
 }

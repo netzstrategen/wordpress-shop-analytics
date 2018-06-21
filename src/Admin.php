@@ -32,6 +32,12 @@ class Admin {
     register_setting('shop-analytics-settings', 'shop_analytics_track_ecommerce');
     register_setting('shop-analytics-settings', 'shop_analytics_market_default');
     register_setting('shop-analytics-settings', 'shop_analytics_datalayer_logging');
+
+    // Adds a new custom product name field.
+    add_action('woocommerce_product_options_general_product_data', __NAMESPACE__ . '\WooCommerce::woocommerce_product_options_general_product_data');
+    add_action('woocommerce_process_product_meta', __NAMESPACE__ . '\WooCommerce::woocommerce_process_product_meta');
+    add_action('woocommerce_product_after_variable_attributes', __NAMESPACE__ . '\WooCommerce::woocommerce_product_after_variable_attributes', 10, 3);
+    add_action('woocommerce_save_product_variation', __NAMESPACE__ . '\WooCommerce::woocommerce_save_product_variation', 10, 2);
   }
 
   /**
