@@ -64,10 +64,15 @@ class WooCommerce {
       $category = static::getProductCategoriesParentsList($product_id);
     }
 
+    // Custom product name overrides default product name.
+    if (!$product_name = get_post_meta($product_id, Plugin::PREFIX . '_custom_product_name', TRUE)) {
+      $product_name = str_replace(["'", '"'], '', wp_strip_all_tags($product->get_name(), TRUE));
+    }
+
     $details = [
       'id' => $product_id,
       'sku' => $product->get_sku() ?: $product_id,
-      'name' => str_replace(["'", '"'], '', wp_strip_all_tags($product->get_name(), TRUE)),
+      'name' => $product_name,
       'type' => $product->get_type(),
       'price' => number_format($product->get_price() ?: 0, 2, '.', ''),
       'category' => $category,
