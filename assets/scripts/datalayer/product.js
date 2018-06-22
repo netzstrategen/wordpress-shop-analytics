@@ -51,8 +51,7 @@
   /**
    * Reacts to adding a product to cart.
    */
-  function onProductAddToCart(e) {
-    e.preventDefault();
+  function onProductAddToCart() {
     var $this = $(this);
     if ($this.is('.disabled')) {
       return;
