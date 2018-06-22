@@ -1,48 +1,50 @@
 "use strict";
 
 !function(t) {
-    function a() {
-        var a = t(".shop-analytics-single-product-details");
-        if (a.length) {
-            var e = localStorage.getItem("shop-analytics-list-type"), i = {
+    function e() {
+        var e = t(".shop-analytics-single-product-details");
+        if (e.length) {
+            var a, i = localStorage.getItem("shop-analytics-list-type"), r = {
                 event: "EECproductDetailView",
                 ecommerce: {
                     detail: {
                         actionField: {
                             list: "Product detail"
                         },
-                        products: c.getProductsData(a)
+                        products: o.getProductsData(e)
                     }
                 }
             };
-            e && (i.ecommerce.detail.actionField.list = e, localStorage.removeItem("shop-analytics-list-type")), 
-            c.postToDataLayer(i);
+            i && (r.ecommerce.detail.actionField.list = i, localStorage.removeItem("shop-analytics-list-type")), 
+            (a = c()) && (r.ecommerce.detail.products[0].variant = a), o.postToDataLayer(r);
         }
     }
-    function e() {
-        var a = t(this);
-        a.closest(".cart").siblings(".shop-analytics-single-product-details").data("quantity", a.val());
+    function a() {
+        var e = t(this);
+        e.closest(".cart").siblings(".shop-analytics-single-product-details").data("quantity", e.val());
     }
-    function i() {
-        if (!t(this).is(".disabled")) {
-            var a, e = t(".shop-analytics-single-product-details"), i = {
+    function i(e) {
+        if (e.preventDefault(), !t(this).is(".disabled")) {
+            var a, i, r, s = t(".shop-analytics-single-product-details"), n = {
                 event: "EECaddToCart",
                 ecommerce: {
-                    currencyCode: e.first().data("currency"),
+                    currencyCode: s.first().data("currency"),
                     add: {
-                        products: c.getProductsData(e)
+                        products: o.getProductsData(s)
                     }
                 }
             };
-            a = o(), a && (i.ecommerce.add.products[0].variant = a), c.postToDataLayer(i);
+            a = c(), a && (n.ecommerce.add.products[0].variant = a, i = o.getVariationId(), 
+            n.ecommerce.add.products[0].id = i, (r = o.getVariationName(i)) && (n.ecommerce.add.products[0].name = r)), 
+            o.postToDataLayer(n);
         }
     }
-    function o() {
-        var a = [];
+    function c() {
+        var e = [];
         return t(".variations_form option:selected").each(function() {
-            t(this).val().trim() && a.push(t(this).text().trim());
-        }), a.join(", ");
+            t(this).val().trim() && e.push(t(this).text().trim());
+        }), e.join(", ");
     }
-    var c = document.shopAnalytics;
-    t(a), t(document).on("change", ".cart .quantity .qty", e).on("click", ".single_add_to_cart_button", i);
+    var o = document.shopAnalytics;
+    t(e), t(document).on("change", ".cart .quantity .qty", a).on("click", ".single_add_to_cart_button", i);
 }(jQuery);

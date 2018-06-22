@@ -18,7 +18,6 @@ document.shopAnalytics = {
    */
   getProductsData: function($products) {
     var products_data = [];
-    var position;
 
     $products.each(function () {
       var $this = jQuery(this);
@@ -64,6 +63,14 @@ document.shopAnalytics = {
       list_type = 'Product Category';
     }
     return list_type;
+  },
+
+  getVariationId: function () {
+    return jQuery('.woocommerce-variation-add-to-cart-enabled .variation_id').val();
+  },
+
+  getVariationName: function(variation_id) {
+    return jQuery('#data-shop-analytics-' + variation_id).data('custom-product-name');
   },
 
   /**

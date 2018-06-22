@@ -398,6 +398,44 @@ class WooCommerce {
   }
 
   /**
+   * Adds hidden fields with data related to product variations with a custom product name set.
+   *
+   * @implements woocommerce_after_single_variation
+   */
+  public static function woocommerce_after_single_variation() {
+    global $post, $wpdb;
+
+    $product = wc_get_product($post->ID);
+    if ($product->is_type('variable')) {
+      $variations = $product->get_available_variations();
+      $html = '';
+
+      $variation_ids = array_column($variations, 'variation_id');
+      $placeholders = implode(',', array_fill(0, count($variation_ids), '%s'));
+      $custom_name_field = Plugin::PREFIX . '_custom_product_name';
+
+      $results = $wpdb->get_results($wpdb->prepare(
+        "SELECT p.ID, p.post_title, m.meta_value FROM $wpdb->posts p
+        JOIN $wpdb->postmeta m
+        ON m.post_id = p.ID
+        AND post_status = 'publish'
+        AND p.ID IN ($placeholders)
+        AND m.meta_key = '$custom_name_field'",
+        $variation_ids
+      ), ARRAY_A);
+
+      foreach ($results as $result) {
+        $html .= '<input type="hidden" ';
+        $html .= 'id="data-shop-analytics-' . $result['ID'] . '" ';
+        $html .= 'data-product-id="' . $result['ID'] . '" ';
+        $html .= isset($result['meta_value']) ? 'data-custom-product-name="' . $result['meta_value'] . '" ' : '';
+        $html .= '/>';
+      }
+      echo $html;
+    }
+  }
+
+  /**
    * Displays custom product name field for simple products.
    *
    * @implements woocommerce_product_options_general_product_data
