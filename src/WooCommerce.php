@@ -438,15 +438,15 @@ class WooCommerce {
   /**
    * Displays custom product name field for simple products.
    *
-   * @implements woocommerce_product_options_general_product_data
+   * @implements woocommerce_product_options_sku
    */
-  public static function woocommerce_product_options_general_product_data() {
-    echo '<div class="options_group show_if_simple show_if_external">';
+  public static function woocommerce_product_options_sku() {
+    echo '<div class="options_group show_if_simple show_if_external" style="border-top:1px solid #eee">';
     woocommerce_wp_text_input([
       'id' => Plugin::PREFIX . '_custom_product_name',
-      'label' => __('Custom product name', Plugin::L10N),
+      'label' => __('Product name in Analytics', Plugin::L10N),
       'desc_tip' => 'true',
-      'description' => __('Custom product name used by Shop Analytics plugin.', Plugin::L10N),
+      'description' => __('Used instead of product title in Google Analytics tracking data in order to achieve sensible reports.', Plugin::L10N),
     ]);
     echo '</div>';
   }
@@ -472,17 +472,18 @@ class WooCommerce {
   /**
    * Displays custom product name field for product variations.
    *
-   * @implements woocommerce_product_after_variable_attributes
+   * @implements woocommerce_variation_options
    */
-  public static function woocommerce_product_after_variable_attributes($loop, $variation_id, $variation) {
+  public static function woocommerce_variation_options($loop, $variation_id, $variation) {
     $field_name = Plugin::PREFIX . '_custom_product_name';
 
-    echo '<div style="clear:both;border-top:1px solid #eee">';
+    echo '<div style="clear:both;border-bottom:1px solid #eee">';
     woocommerce_wp_text_input([
       'id' => $field_name . '[' . $loop . ']',
-      'label' => __('Custom product name', Plugin::L10N),
+      'label' => __('Product name in Analytics', Plugin::L10N),
       'value' => get_post_meta($variation->ID, $field_name, TRUE),
-      'description' => __('Custom product name used by Shop Analytics plugin.', Plugin::L10N),
+      'desc_tip' => 'true',
+      'description' => __('Used instead of product title in Google Analytics tracking data in order to achieve sensible reports.', Plugin::L10N),
     ]);
     echo '</div>';
   }
