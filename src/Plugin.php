@@ -283,8 +283,11 @@ class Plugin {
       if (is_wc_endpoint_url('order_pay')) {
         wp_localize_script($handle . '_endpoints', Plugin::PREFIX . '_endpoint_data', ['step' => 'order_pay']);
       }
-      if (is_wc_endpoint_url('order-received')) {
+      elseif (is_wc_endpoint_url('order-received')) {
         wp_localize_script($handle . '_endpoints', Plugin::PREFIX . '_endpoint_data', ['step' => 'order_received']);
+      }
+      else {
+        wp_localize_script($handle . '_endpoints', Plugin::PREFIX . '_endpoint_data', ['step' => '']);
       }
     }
   }
