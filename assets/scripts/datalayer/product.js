@@ -16,6 +16,7 @@
     if (!$products.length) {
       return;
     }
+    var variation;
     // Get the list type where this product was displayed on when clicked.
     var list_type = localStorage.getItem('shop-analytics-list-type');
     var event_data = {
@@ -32,6 +33,9 @@
     if (list_type) {
       event_data.ecommerce.detail.actionField.list = list_type;
       localStorage.removeItem('shop-analytics-list-type');
+    }
+    if (variation = getProductVariationAttributes()) {
+      event_data.ecommerce.detail.products[0].variant = variation;
     }
     shopAnalytics.postToDataLayer(event_data);
   }
@@ -54,6 +58,8 @@
     }
     var $products = $('.shop-analytics-single-product-details');
     var variation;
+    var variation_id;
+    var custom_name;
     var event_data = {
       event: 'EECaddToCart',
       ecommerce: {
@@ -66,6 +72,12 @@
     variation = getProductVariationAttributes();
     if (variation) {
       event_data.ecommerce.add.products[0].variant = variation;
+      variation_id = shopAnalytics.getVariationId();
+      event_data.ecommerce.add.products[0].id = variation_id;
+      // Override product name with custom name, if it exists.
+      if (custom_name = shopAnalytics.getVariationName(variation_id)) {
+        event_data.ecommerce.add.products[0].name = custom_name;
+      }
     }
     shopAnalytics.postToDataLayer(event_data);
   };

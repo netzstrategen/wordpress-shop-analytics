@@ -56,6 +56,9 @@ class Plugin {
       add_action('woocommerce_single_product_summary', __NAMESPACE__ . '\WooCommerce::addSingleProductDetailsHtmlDataAttr');
       add_action('woocommerce_thankyou', __NAMESPACE__ . '\WooCommerce::addOrderDetailsHtmlDataAttr');
 
+      // Adds hidden fields with data related to product variations with a custom product name set.
+      add_action('woocommerce_after_single_variation', __NAMESPACE__ . '\WooCommerce::woocommerce_after_single_variation');
+
       // Enqueue Google Analytics Data Layer related scripts.
       add_action('wp_enqueue_scripts', __CLASS__ . '::enqueueGaDataLayerScripts');
     }

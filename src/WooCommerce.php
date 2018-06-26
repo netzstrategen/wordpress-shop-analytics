@@ -64,10 +64,15 @@ class WooCommerce {
       $category = static::getProductCategoriesParentsList($product_id);
     }
 
+    // Custom product name overrides default product name.
+    if (!$product_name = get_post_meta($product_id, Plugin::PREFIX . '_custom_product_name', TRUE)) {
+      $product_name = str_replace(["'", '"'], '', wp_strip_all_tags($product->get_name(), TRUE));
+    }
+
     $details = [
       'id' => $product_id,
       'sku' => $product->get_sku() ?: $product_id,
-      'name' => str_replace(["'", '"'], '', wp_strip_all_tags($product->get_name(), TRUE)),
+      'name' => $product_name,
       'type' => $product->get_type(),
       'price' => number_format($product->get_price() ?: 0, 2, '.', ''),
       'category' => $category,
@@ -390,6 +395,118 @@ class WooCommerce {
     $html .= '</div>';
 
     return $html;
+  }
+
+  /**
+   * Adds hidden fields with data related to product variations with a custom product name set.
+   *
+   * @implements woocommerce_after_single_variation
+   */
+  public static function woocommerce_after_single_variation() {
+    global $post, $wpdb;
+
+    $product = wc_get_product($post->ID);
+    if ($product->is_type('variable')) {
+      $html = '';
+
+      $variation_ids = $wpdb->get_col($wpdb->prepare(
+        "SELECT p.ID FROM {$wpdb->posts} p
+        WHERE post_parent = %d
+        AND post_status = 'publish'
+        AND post_type = 'product_variation'",
+        $post->ID
+      ));
+
+      $placeholders = implode(',', array_fill(0, count($variation_ids), '%s'));
+      $custom_name_field = Plugin::PREFIX . '_custom_product_name';
+
+      $results = $wpdb->get_results($wpdb->prepare(
+        "SELECT p.ID, p.post_title, m.meta_value FROM $wpdb->posts p
+        JOIN $wpdb->postmeta m
+        ON m.post_id = p.ID
+        AND post_status = 'publish'
+        AND p.ID IN ($placeholders)
+        AND m.meta_key = '$custom_name_field'",
+        $variation_ids
+      ), ARRAY_A);
+
+      foreach ($results as $result) {
+        $html .= '<input type="hidden" ';
+        $html .= 'id="data-shop-analytics-' . $result['ID'] . '" ';
+        $html .= 'data-product-id="' . $result['ID'] . '" ';
+        $html .= isset($result['meta_value']) ? 'data-custom-product-name="' . $result['meta_value'] . '" ' : '';
+        $html .= '/>';
+      }
+      echo $html;
+    }
+  }
+
+  /**
+   * Displays custom product name field for simple products.
+   *
+   * @implements woocommerce_product_options_sku
+   */
+  public static function woocommerce_product_options_sku() {
+    echo '<div class="options_group show_if_simple show_if_external" style="border-top:1px solid #eee">';
+    woocommerce_wp_text_input([
+      'id' => Plugin::PREFIX . '_custom_product_name',
+      'label' => __('Product name in Analytics', Plugin::L10N),
+      'desc_tip' => 'true',
+      'description' => __('Used instead of product title in Google Analytics tracking data in order to achieve sensible reports.', Plugin::L10N),
+    ]);
+    echo '</div>';
+  }
+
+  /**
+   * Saves custom product name field for simple products.
+   *
+   * @implements woocommerce_process_product_meta
+   */
+  public static function woocommerce_process_product_meta($post_id) {
+    $field_name = Plugin::PREFIX . '_custom_product_name';
+
+    if (isset($_POST[$field_name])) {
+      if ($custom_product_name = $_POST[$field_name]) {
+        update_post_meta($post_id, $field_name, $custom_product_name);
+      }
+      else {
+        delete_post_meta($post_id, $field_name);
+      }
+    }
+  }
+
+  /**
+   * Displays custom product name field for product variations.
+   *
+   * @implements woocommerce_variation_options
+   */
+  public static function woocommerce_variation_options($loop, $variation_id, $variation) {
+    $field_name = Plugin::PREFIX . '_custom_product_name';
+
+    echo '<div style="clear:both;border-bottom:1px solid #eee">';
+    woocommerce_wp_text_input([
+      'id' => $field_name . '[' . $loop . ']',
+      'label' => __('Product name in Analytics', Plugin::L10N),
+      'value' => get_post_meta($variation->ID, $field_name, TRUE),
+      'desc_tip' => 'true',
+      'description' => __('Used instead of product title in Google Analytics tracking data in order to achieve sensible reports.', Plugin::L10N),
+    ]);
+    echo '</div>';
+  }
+
+  /**
+   * Saves custom product name field for product variations.
+   *
+   * @implements woocommerce_save_product_variation
+   */
+  public static function woocommerce_save_product_variation($variation_id, $loop) {
+    $field_name = Plugin::PREFIX . '_custom_product_name';
+
+    if (isset($_POST[$field_name][$loop], $_POST['variable_post_id'])) {
+      $new_value = $_POST[$field_name][$loop];
+      $variable_post_id = $_POST['variable_post_id'];
+      update_post_meta($variation_id, $field_name, $new_value);
+    }
   }
 
 }
