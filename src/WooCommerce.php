@@ -410,10 +410,10 @@ class WooCommerce {
       $html = '';
 
       $variation_ids = $wpdb->get_col($wpdb->prepare(
-        "SELECT p.ID FROM $wpdb->posts p
+        "SELECT p.ID FROM {$wpdb->posts} p
         WHERE post_parent = %d
         AND post_status = 'publish'
-        AND post_type='product_variation'",
+        AND post_type = 'product_variation'",
         $post->ID
       ));
 
