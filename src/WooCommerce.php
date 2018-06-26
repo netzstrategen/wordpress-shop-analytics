@@ -407,10 +407,16 @@ class WooCommerce {
 
     $product = wc_get_product($post->ID);
     if ($product->is_type('variable')) {
-      $variations = $product->get_available_variations();
       $html = '';
 
-      $variation_ids = array_column($variations, 'variation_id');
+      $variation_ids = $wpdb->get_col($wpdb->prepare(
+        "SELECT p.ID FROM $wpdb->posts p
+        WHERE post_parent = %d
+        AND post_status = 'publish'
+        AND post_type='product_variation'",
+        $post->ID
+      ));
+
       $placeholders = implode(',', array_fill(0, count($variation_ids), '%s'));
       $custom_name_field = Plugin::PREFIX . '_custom_product_name';
 
