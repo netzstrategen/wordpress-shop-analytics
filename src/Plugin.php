@@ -303,6 +303,9 @@ class Plugin {
    */
   public static function buildAttributesDataTags(array $attributes) {
     array_walk($attributes, function (&$value, $key) {
+      if (is_array($value)) {
+        $value = implode($value, ', ');
+      }
       if (!is_null($value) && '' !== trim($value)) {
         $value = 'data-' . $key . '="' . esc_attr($value) . '"';
       }

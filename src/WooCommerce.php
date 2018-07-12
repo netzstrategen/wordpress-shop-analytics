@@ -429,12 +429,11 @@ class WooCommerce {
         AND m.meta_key = '$custom_name_field'",
         $variation_ids
       ), ARRAY_A);
-
       foreach ($results as $result) {
         $html .= '<input type="hidden" ';
         $html .= 'id="data-shop-analytics-' . $result['ID'] . '" ';
         $html .= 'data-product-id="' . $result['ID'] . '" ';
-        $html .= isset($result['meta_value']) ? 'data-custom-product-name="' . $result['meta_value'] . '" ' : '';
+        $html .= isset($result['meta_value']) ? 'data-custom-product-name="' . esc_attr(str_replace(['"', "'"], '', $result['meta_value'])) . '" ' : '';
         $html .= '/>';
       }
       echo $html;
@@ -501,11 +500,11 @@ class WooCommerce {
    */
   public static function woocommerce_save_product_variation($variation_id, $loop) {
     $field_name = Plugin::PREFIX . '_custom_product_name';
-
-    if (isset($_POST[$field_name][$loop], $_POST['variable_post_id'])) {
-      $new_value = $_POST[$field_name][$loop];
-      $variable_post_id = $_POST['variable_post_id'];
-      update_post_meta($variation_id, $field_name, $new_value);
+    if (isset($_POST[$field_name][$loop])) {
+      update_post_meta($variation_id, $field_name, $_POST[$field_name][$loop]);
+    }
+    else {
+      delete_post_meta($variation_id, $field_name);
     }
   }
 
