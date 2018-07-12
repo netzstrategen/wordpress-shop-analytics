@@ -24,26 +24,26 @@ window.dataLayer = window.dataLayer || [], document.shopAnalytics = {
         return jQuery("#data-shop-analytics-" + t).data("custom-product-name");
     },
     postToDataLayer: function(t) {
-        "object" == typeof t && (shop_analytics_settings.datalayer_console_log && console.dir(t), 
+        "object" == typeof t && ("on" === shop_analytics_settings.datalayer_console_log && console.dir(t), 
         window.dataLayer.push(t));
     }
 }, function(t) {
     function a(a, e) {
         var o = t(e && e.responseText ? e.responseText : document).find(".shop-analytics-product-details");
         if (o.length && !o.parents(".shop-analytics-order-details").length) {
-            var r = 1, c = "";
+            var r = 1, n = "";
             o.each(function(a) {
                 var e = t(this), o = i.getProductsListType(e);
-                c !== o && (c = o, r = 1), e.data("position", r++), e.data("list", o);
+                n !== o && (n = o, r = 1), e.data("position", r++), e.data("list", o);
             });
-            var n = {
+            var c = {
                 event: "EECproductImpression",
                 ecommerce: {
                     currencyCode: o.first().data("currency"),
                     impressions: i.getProductsData(o)
                 }
             };
-            i.postToDataLayer(n);
+            i.postToDataLayer(c);
         }
     }
     function e() {
@@ -62,18 +62,18 @@ window.dataLayer = window.dataLayer || [], document.shopAnalytics = {
     }
     function o() {
         var a = t(".cart .cart_item td.product-remove .remove");
-        c(a), n(a);
+        n(a), c(a);
     }
     function r() {
-        c(t(this)), n(t(this));
+        n(t(this)), c(t(this));
     }
-    function c(a) {
+    function n(a) {
         a.each(function() {
             var a = t(this), e = a.data("item_key");
             a.data("quantity", t('[name="cart[' + e + '][qty]"]').val());
         });
     }
-    function n(t) {
+    function c(t) {
         var a = {
             event: "EECremoveFromCart",
             ecommerce: {
