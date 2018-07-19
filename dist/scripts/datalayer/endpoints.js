@@ -2,7 +2,7 @@
 
 !function(e) {
     function t() {
-        "order_received" === shop_analytics_endpoint_data.step && a();
+        "order-received" === shop_analytics_endpoint_data.step && a();
     }
     function a() {
         var t = e(document).find(".shop-analytics-order-details"), a = t.find(".shop-analytics-product-details"), n = {

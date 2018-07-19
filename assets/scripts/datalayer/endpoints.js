@@ -10,7 +10,7 @@
    * endpoint_id is injected from backend using wp_localize_script().
    */
   function onLoad() {
-    if ('order_received' === shop_analytics_endpoint_data.step) {
+    if ('order-received' === shop_analytics_endpoint_data.step) {
       onOrderReceived();
     }
   }

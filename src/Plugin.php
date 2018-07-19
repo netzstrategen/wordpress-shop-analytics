@@ -266,8 +266,27 @@ class Plugin {
    * Loads Google Analytics Data Layer related scripts.
    */
   public static function enqueueGaDataLayerScripts() {
+    global $wp;
+
     $handle = Plugin::PREFIX . '_datalayer';
     $scripts = static::getBaseUrl() . '/dist/scripts/datalayer';
+    $checkout_step_prefix = 'shop_analytics_checkout_step_';
+    $checkout_step = 0;
+    $wc_checkout_steps = apply_filters('shop_analytics_checkout_steps', [
+      'view_cart' => 10,
+      'checkout_page' => 20,
+      'checkout_pay_page' => 30,
+    ]);
+    $wc_endpoints = apply_filters('shop_analytics_wc_endpoints', [
+      'view-order' => 10,
+      'edit-account' => 20,
+      'edit-address' => 30,
+      'lost-password' => 40,
+      'customer-logout' => 50,
+      'add-payment-method' => 60,
+      'order-pay' => 70,
+      'order-received' => 80,
+    ]);
 
     wp_enqueue_script($handle . '_common', "$scripts/common.js", ['jquery'], FALSE, FALSE);
     wp_localize_script($handle . '_common', Plugin::PREFIX . '_settings', [
@@ -275,22 +294,45 @@ class Plugin {
     ]);
     wp_enqueue_script($handle . '_cart', "$scripts/cart.js", [$handle . '_common'], FALSE, TRUE);
 
-    if (is_product()) {
-      wp_enqueue_script($handle . '_product', "$scripts/product.js", [$handle . '_common'], FALSE, TRUE);
+    if (is_cart() || is_checkout()) {
+      if (is_cart()) {
+        $checkout_step = apply_filters($checkout_step_prefix . '_view_cart', $wc_checkout_steps['view_cart']);
+      }
+
+      if (is_checkout_pay_page()) {
+        $checkout_step = apply_filters($checkout_step_prefix . '_checkout_pay', $wc_checkout_steps['checkout_pay']);
+      }
+      elseif (is_checkout()) {
+        $checkout_step = apply_filters($checkout_step_prefix . '_checkout_page', $wc_checkout_steps['checkout_page']);
+      }
+    }
+    elseif (isset($wp->query_vars['pagename'])) {
+      $checkout_step = $wc_checkout_steps[$wp->query_vars['pagename']] ?? 0;
+    }
+
+    if ($checkout_step) {
+      wp_enqueue_script($handle . '_cart_checkout', "$scripts/cart-checkout.js", [$handle . '_common'], FALSE, TRUE);
+      wp_localize_script($handle . '_cart_checkout', Plugin::PREFIX . '_checkout_steps', [
+        'order' => apply_filters($checkout_step_prefix . 'current', $checkout_step),
+      ]);
     }
 
     if (is_wc_endpoint_url()) {
       wp_enqueue_script($handle . '_endpoints', "$scripts/endpoints.js", [$handle . '_common'], FALSE, TRUE);
       // Inject woocoomerce endpoint identifier into frontend.
-      if (is_wc_endpoint_url('order_pay')) {
-        wp_localize_script($handle . '_endpoints', Plugin::PREFIX . '_endpoint_data', ['step' => 'order_pay']);
+      foreach ($wc_endpoints as $endpoint => $order) {
+        if (is_wc_endpoint_url($endpoint)) {
+          break;
+        }
       }
-      elseif (is_wc_endpoint_url('order-received')) {
-        wp_localize_script($handle . '_endpoints', Plugin::PREFIX . '_endpoint_data', ['step' => 'order_received']);
-      }
-      else {
-        wp_localize_script($handle . '_endpoints', Plugin::PREFIX . '_endpoint_data', ['step' => '']);
-      }
+      wp_localize_script($handle . '_endpoints', Plugin::PREFIX . '_endpoint_data', [
+        'step' => $endpoint,
+        'order' => $order,
+      ]);
+    }
+
+    if (is_product()) {
+      wp_enqueue_script($handle . '_product', "$scripts/product.js", [$handle . '_common'], FALSE, TRUE);
     }
   }
 

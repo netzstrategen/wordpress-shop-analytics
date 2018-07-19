@@ -92,6 +92,18 @@ document.shopAnalytics = {
   },
 
   /**
+   * Updates quantity value of each item in the cart.
+   */
+  updateCartItemsQuantity: function ($items) {
+    $items.each(function() {
+      var $this = jQuery(this);
+      var item_key = $this.data('item_key');
+      // Each quantity field is linked to its corresponding item by a unique key.
+      $this.data('quantity', jQuery('[name="cart[' + item_key + '][qty]"]').val());
+    });
+  },
+
+  /**
    * Pushes event data to Google Analytics data layer.
    * datalayer_console_log is injected from backend
    * using wp_localize_script().
@@ -111,6 +123,43 @@ document.shopAnalytics = {
       register: '.woocommerce-form-register button[name="register"]',
       registerOnCheckout: '.woocommerce-checkout #place_order'
     }
+  },
+  cart: {
+    elements: {
+      product: '.shop-analytics-product-info',
+      shippingMethods: 'select.shipping_method, input[name^="shipping_method"]',
+      shippingMethodSelected: 'select.shipping_method:selected, input[name^="shipping_method"]:checked',
+      paymentMethods: 'select.payment_method, input[name^="payment_method"]',
+      paymentMethodSelected: 'select.payment_method:selected, input[name^="payment_method"]:checked'
+    }
+  },
+  checkout: {
+    dataInit: {
+      event: 'EECcheckout',
+      ecommerce: {
+        checkout: {
+          actionField: {
+            step: 0,
+          },
+          products: []
+        }
+      }
+    },
+    elements: {
+      shippingMethods: 'select.shipping_method, input[name^="shipping_method"]',
+      shippingMethodSelected: 'select.shipping_method:selected, input[name^="shipping_method"]:checked',
+      paymentMethods: 'input[name="payment_method"]',
+      paymentMethodSelected: 'select.payment_method:selected, input[name="payment_method"]:checked',
+      billingAddressFields: '.woocommerce-billing-fields input.input-text, .woocommerce-billing-fields select',
+      billingAddressFieldsRequired: '.woocommerce-billing-fields .validate-required input.input-text, .woocommerce-billing-fields .validate-required select',
+      shippingAddressFields: '.woocommerce-shipping-fields input.input-text, .woocommerce-shipping-fields select',
+      shippingAddressFieldsRequired: '.woocommerce-shipping-fields .validate-required input.input-text, .woocommerce-shipping-fields .validate-required select',
+      shippingAddressToggle: '#ship-to-different-address-checkbox'
+    },
+    messages: {
+      shipToSameAddress: 'Ship to same address',
+      shipToDifferentAddress: 'Ship to different address'
+    }
   }
 };
 
@@ -122,10 +171,13 @@ document.shopAnalytics = {
   $(onLoad);
 
   $(document)
+    .on('click', shopAnalytics.event.click.login, onLoginFormSubmit)
+    .on('click', shopAnalytics.event.click.register, onRegisterFormSubmit)
+    .on('click', shopAnalytics.event.click.registerOnCheckout, onRegisterOnCheckoutSubmit)
+    .ajaxComplete(onLoad)
     .on('click', '.products .product a', onProductClick)
-    .on('click', document.shopAnalytics.event.click.login, onLoginFormSubmit)
-    .on('click', document.shopAnalytics.event.click.register, onRegisterFormSubmit)
-    .on('click', document.shopAnalytics.event.click.registerOnCheckout, onRegisterOnCheckoutSubmit);
+    .on('click', '.remove_from_cart_button, .woocommerce-cart-form .product-remove > a, .cart_item td.product-remove .remove', onRemoveSingleProduct)
+    .on('click', 'th.product-remove .remove', onEmptyCart);
 
   /**
    * Collects details about products displayed on the page when loaded or added
@@ -254,5 +306,40 @@ document.shopAnalytics = {
       onRegisterFormSubmit();
     }
   }
+
+  /**
+   * Retrieves details of all products in the cart when it is emptied.
+   */
+  function onEmptyCart() {
+    var $cart_items = $(shopAnalytics.cart.elements.product);
+    shopAnalytics.updateCartItemsQuantity($cart_items);
+    removeProductsFromCart($cart_items);
+  }
+
+  /**
+   * Retrieves details of a single product when it is removed from cart.
+   */
+  function onRemoveSingleProduct() {
+    var $cart_item = $(this).prev(shopAnalytics.cart.elements.product);
+    shopAnalytics.updateCartItemsQuantity($cart_item);
+    removeProductsFromCart($cart_item);
+  }
+
+  /**
+   * Reacts to removal of products from cart.
+   */
+  function removeProductsFromCart($products) {
+    var productsData = shopAnalytics.getProductsData($products);
+    var event_data = {
+      event: 'EECremoveFromCart',
+      ecommerce: {
+        remove: {
+          products: productsData
+        }
+      }
+    };
+    localStorage.setItem('productsInCartData', JSON.stringify(productsData));
+    shopAnalytics.postToDataLayer(event_data);
+  };
 
 })(jQuery);

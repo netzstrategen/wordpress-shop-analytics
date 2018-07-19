@@ -297,7 +297,7 @@ class WooCommerce {
       $product_details['variant'] = wc_get_formatted_variation(wc_get_product($product)->get_variation_attributes(), TRUE);
     }
 
-    return str_replace('<a ', '<a ' . Plugin::buildAttributesDataTags($product_details) . ' ', $link);
+    return str_replace('<a ', '<span class="shop-analytics-product-info" ' . Plugin::buildAttributesDataTags($product_details) . ' data-quantity="' . $cart_item['quantity'] . '"></span><a ', $link);
   }
 
   /**
