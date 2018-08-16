@@ -25,7 +25,7 @@
     }
     function i() {
         if (!t(this).is(".disabled")) {
-            var a, e, i, r = t(".shop-analytics-single-product-details"), s = {
+            var a, e, i, r = t(".shop-analytics-single-product-details"), n = {
                 event: "EECaddToCart",
                 ecommerce: {
                     currencyCode: r.first().data("currency"),
@@ -34,9 +34,9 @@
                     }
                 }
             };
-            a = o(), a && (s.ecommerce.add.products[0].variant = a, e = c.getVariationId(), 
-            s.ecommerce.add.products[0].id = e, (i = c.getVariationName(e)) && (s.ecommerce.add.products[0].name = i)), 
-            c.postToDataLayer(s);
+            a = o(), a && (n.ecommerce.add.products[0].variant = a, e = c.getVariationId(), 
+            n.ecommerce.add.products[0].id = e, (i = c.getVariationName(e)) && (n.ecommerce.add.products[0].name = i)), 
+            c.postToDataLayer(n);
         }
     }
     function o() {
@@ -46,5 +46,5 @@
         }), a.join(", ");
     }
     var c = document.shopAnalytics;
-    t(a), t(document).on("change", ".cart .quantity .qty", e).on("adding_to_cart", "body", i);
+    t(a), t(document).on("change", ".cart .quantity .qty", e).on("click", ".single_add_to_cart_button", i).on("adding_to_cart", "body", i);
 }(jQuery);

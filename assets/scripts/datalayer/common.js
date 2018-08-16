@@ -91,6 +91,19 @@ document.shopAnalytics = {
 (function ($) {
   var shopAnalytics = document.shopAnalytics;
 
+  $(document).ajaxSuccess(function(event, xhr, settings) {
+    if (settings === undefined || settings.data === undefined) {
+      return;
+    }
+    if (settings.data.indexOf('nm_cart_panel_remove_product') >= 0) {
+      var pos = settings.data.indexOf('cart_item_key=') + 14;
+      var item_key = settings.data.substring(pos);
+      var $remove = $('a[data-item_key="' + item_key + '"]');
+      updateCartItemsQuantity($('a[data-item_key="' + item_key + '"]'));
+      removeProductsFromCart($('a[data-item_key="' + item_key + '"]'));
+    }
+  });
+
   $(onLoad);
   $(document)
     .ajaxComplete(onLoad)

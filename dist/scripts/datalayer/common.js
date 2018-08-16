@@ -85,5 +85,11 @@ window.dataLayer = window.dataLayer || [], document.shopAnalytics = {
         i.postToDataLayer(a);
     }
     var i = document.shopAnalytics;
-    t(a), t(document).ajaxComplete(a).on("click", ".products .product a", e).on("click", ".remove_from_cart_button, .woocommerce-cart-form .product-remove > a, .cart_item td.product-remove .remove", r).on("click", "th.product-remove .remove", o);
+    t(document).ajaxSuccess(function(a, e, o) {
+        if (void 0 !== o && void 0 !== o.data && o.data.indexOf("nm_cart_panel_remove_product") >= 0) {
+            var r = o.data.indexOf("cart_item_key=") + 14, i = o.data.substring(r);
+            t('a[data-item_key="' + i + '"]');
+            n(t('a[data-item_key="' + i + '"]')), c(t('a[data-item_key="' + i + '"]'));
+        }
+    }), t(a), t(document).ajaxComplete(a).on("click", ".products .product a", e).on("click", ".remove_from_cart_button, .woocommerce-cart-form .product-remove > a, .cart_item td.product-remove .remove", r).on("click", "th.product-remove .remove", o);
 }(jQuery);
