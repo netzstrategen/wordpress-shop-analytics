@@ -6,7 +6,7 @@
   $(onLoad);
   $(document)
     .on('change', '.cart .quantity .qty', updateProductQuantity)
-    .on('click', '.single_add_to_cart_button', onProductAddToCart);
+    .on('adding_to_cart', 'body', onProductAddToCart);
 
   /**
    * Reacts to loading of a product details page.
