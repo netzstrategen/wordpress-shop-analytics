@@ -17,6 +17,13 @@ window.dataLayer = window.dataLayer || [], document.shopAnalytics = {
     getProductsListType: function(t) {
         return t.closest(".cross-sells").length ? "Cross-sells products" : t.closest(".related").length ? "Related products" : "Product Category";
     },
+    getProductVariationAttributes: function(t) {
+        var a = [];
+        return jQuery(t).each(function() {
+            var t = jQuery(this);
+            t.val().trim() && a.push(t.text().trim());
+        }), a.join(", ");
+    },
     getVariationId: function() {
         return jQuery(".woocommerce-variation-add-to-cart-enabled .variation_id").val();
     },
@@ -29,67 +36,37 @@ window.dataLayer = window.dataLayer || [], document.shopAnalytics = {
     }
 }, function(t) {
     function a(a, e) {
-        var o = t(e && e.responseText ? e.responseText : document).find(".shop-analytics-product-details");
-        if (o.length && !o.parents(".shop-analytics-order-details").length) {
-            var r = 1, n = "";
-            o.each(function(a) {
-                var e = t(this), o = i.getProductsListType(e);
-                n !== o && (n = o, r = 1), e.data("position", r++), e.data("list", o);
+        var r = t(e && e.responseText ? e.responseText : document).find(".shop-analytics-product-details");
+        if (r.length && !r.parents(".shop-analytics-order-details").length) {
+            var n = 1, i = "";
+            r.each(function(a) {
+                var e = t(this), r = o.getProductsListType(e);
+                i !== r && (i = r, n = 1), e.data("position", n++), e.data("list", r);
             });
-            var c = {
+            var s = {
                 event: "EECproductImpression",
                 ecommerce: {
-                    currencyCode: o.first().data("currency"),
-                    impressions: i.getProductsData(o)
+                    currencyCode: r.first().data("currency"),
+                    impressions: o.getProductsData(r)
                 }
             };
-            i.postToDataLayer(c);
+            o.postToDataLayer(s);
         }
     }
     function e() {
-        var a = t(this).closest(".product").find(".shop-analytics-product-details"), e = a.first().data("list"), o = {
+        var a = t(this).closest(".product").find(".shop-analytics-product-details"), e = a.first().data("list"), r = {
             event: "EECproductClick",
             ecommerce: {
                 click: {
                     actionField: {
                         list: e
                     },
-                    products: i.getProductsData(a)
+                    products: o.getProductsData(a)
                 }
             }
         };
-        localStorage.setItem("shop-analytics-list-type", e), i.postToDataLayer(o);
+        localStorage.setItem("shop-analytics-list-type", e), o.postToDataLayer(r);
     }
-    function o() {
-        var a = t(".cart .cart_item td.product-remove .remove");
-        n(a), c(a);
-    }
-    function r() {
-        n(t(this)), c(t(this));
-    }
-    function n(a) {
-        a.each(function() {
-            var a = t(this), e = a.data("item_key");
-            a.data("quantity", t('[name="cart[' + e + '][qty]"]').val());
-        });
-    }
-    function c(t) {
-        var a = {
-            event: "EECremoveFromCart",
-            ecommerce: {
-                remove: {
-                    products: i.getProductsData(t)
-                }
-            }
-        };
-        i.postToDataLayer(a);
-    }
-    var i = document.shopAnalytics;
-    t(document).ajaxSuccess(function(a, e, o) {
-        if (void 0 !== o && void 0 !== o.data && o.data.indexOf("nm_cart_panel_remove_product") >= 0) {
-            var r = o.data.indexOf("cart_item_key=") + 14, i = o.data.substring(r);
-            t('a[data-item_key="' + i + '"]');
-            n(t('a[data-item_key="' + i + '"]')), c(t('a[data-item_key="' + i + '"]'));
-        }
-    }), t(a), t(document).ajaxComplete(a).on("click", ".products .product a", e).on("click", ".remove_from_cart_button, .woocommerce-cart-form .product-remove > a, .cart_item td.product-remove .remove", r).on("click", "th.product-remove .remove", o);
+    var o = document.shopAnalytics;
+    t(a), t(document).on("click", ".products .product a", e);
 }(jQuery);

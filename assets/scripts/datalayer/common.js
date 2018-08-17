@@ -65,6 +65,24 @@ document.shopAnalytics = {
     return list_type;
   },
 
+  /**
+   * Retrieves the selected variation attributes names.
+   *
+   * @return string
+   *   Comma-separated list of selected variation attributes.
+   */
+  getProductVariationAttributes: function ($variations) {
+    var variationsList = [];
+
+    jQuery($variations).each(function () {
+      var $this = jQuery(this);
+      if ($this.val().trim()) {
+        variationsList.push($this.text().trim());
+      }
+    });
+    return variationsList.join(', ');
+  },
+
   getVariationId: function () {
     return jQuery('.woocommerce-variation-add-to-cart-enabled .variation_id').val();
   },
@@ -91,25 +109,10 @@ document.shopAnalytics = {
 (function ($) {
   var shopAnalytics = document.shopAnalytics;
 
-  $(document).ajaxSuccess(function(event, xhr, settings) {
-    if (settings === undefined || settings.data === undefined) {
-      return;
-    }
-    if (settings.data.indexOf('nm_cart_panel_remove_product') >= 0) {
-      var pos = settings.data.indexOf('cart_item_key=') + 14;
-      var item_key = settings.data.substring(pos);
-      var $remove = $('a[data-item_key="' + item_key + '"]');
-      updateCartItemsQuantity($('a[data-item_key="' + item_key + '"]'));
-      removeProductsFromCart($('a[data-item_key="' + item_key + '"]'));
-    }
-  });
-
   $(onLoad);
+
   $(document)
-    .ajaxComplete(onLoad)
-    .on('click', '.products .product a', onProductClick)
-    .on('click', '.remove_from_cart_button, .woocommerce-cart-form .product-remove > a, .cart_item td.product-remove .remove', onRemoveSingleProduct)
-    .on('click', 'th.product-remove .remove', onEmptyCart);
+    .on('click', '.products .product a', onProductClick);
 
   /**
    * Collects details about products displayed on the page when loaded or added
@@ -170,50 +173,5 @@ document.shopAnalytics = {
     localStorage.setItem('shop-analytics-list-type', list_type);
     shopAnalytics.postToDataLayer(event_data);
   }
-
-  /**
-   * Retrieves details of all products in the cart when it is emptied.
-   */
-  function onEmptyCart() {
-    var $cart_items = $('.cart .cart_item td.product-remove .remove');
-    updateCartItemsQuantity($cart_items);
-    removeProductsFromCart($cart_items);
-  }
-
-  /**
-   * Retrieves details of a single product when it is removed from cart.
-   */
-  function onRemoveSingleProduct() {
-    updateCartItemsQuantity($(this));
-    removeProductsFromCart($(this));
-  }
-
-  /**
-   * Updates quantity value of each item in the cart.
-   */
-  function updateCartItemsQuantity($items) {
-    $items.each(function() {
-      var $this = $(this);
-      var item_key = $this.data('item_key');
-      // Each quantity field is linked to its corresponding item by a unique key.
-      $this.data('quantity', $('[name="cart[' + item_key + '][qty]"]').val());
-    });
-  }
-
-  /**
-   * Reacts to removal of products from cart.
-   */
-  function removeProductsFromCart($products) {
-    var event_data = {
-      event: 'EECremoveFromCart',
-      ecommerce: {
-        remove: {
-          products: shopAnalytics.getProductsData($products)
-        }
-      }
-    };
-
-    shopAnalytics.postToDataLayer(event_data);
-  };
 
 })(jQuery);
