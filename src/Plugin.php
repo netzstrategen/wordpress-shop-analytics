@@ -117,7 +117,8 @@ class Plugin {
     $attributes['user-track'] = (int) !in_array(static::getCurrentUserRole(), static::getDisabledUserRoles(), TRUE);
     // Adds page type data attribute.
     if ($wp_query->queried_object) {
-      $attributes['page-type'] = static::getPageType($wp_query->queried_object->ID);
+      $postId = $wp_query->queried_object->ID ?? 0;
+      $attributes['page-type'] = static::getPageType($postId);
     }
     // Adds shop market code. Set to the the plugin settings default value if undefined.
     $attributes['market'] = get_option('shop_analytics_market_default') ?: 'GLOBAL';
