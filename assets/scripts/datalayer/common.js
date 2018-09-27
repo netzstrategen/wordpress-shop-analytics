@@ -112,7 +112,8 @@ document.shopAnalytics = {
   $(onLoad);
 
   $(document)
-    .on('click', '.products .product a', onProductClick);
+    .on('click', '.products .product a', onProductClick)
+    .on('click', '.woocommerce-form-login button[name="login"]', onLoginFormSubmit);
 
   /**
    * Collects details about products displayed on the page when loaded or added
@@ -171,6 +172,19 @@ document.shopAnalytics = {
     };
     // Save the type of list where the clicked product is displayed.
     localStorage.setItem('shop-analytics-list-type', list_type);
+    shopAnalytics.postToDataLayer(event_data);
+  }
+
+  /**
+   * Reacts to user login form submision.
+   */
+  function onLoginFormSubmit() {
+    var event_data = {
+      'event': 'UniversalEvent',
+      'eventCategory': 'User',
+      'eventAction': 'Click',
+      'eventLabel': 'login'
+    };
     shopAnalytics.postToDataLayer(event_data);
   }
 

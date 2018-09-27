@@ -36,37 +36,46 @@ window.dataLayer = window.dataLayer || [], document.shopAnalytics = {
     }
 }, function(t) {
     function a(a, e) {
-        var r = t(e && e.responseText ? e.responseText : document).find(".shop-analytics-product-details");
-        if (r.length && !r.parents(".shop-analytics-order-details").length) {
-            var n = 1, i = "";
-            r.each(function(a) {
-                var e = t(this), r = o.getProductsListType(e);
-                i !== r && (i = r, n = 1), e.data("position", n++), e.data("list", r);
+        var o = t(e && e.responseText ? e.responseText : document).find(".shop-analytics-product-details");
+        if (o.length && !o.parents(".shop-analytics-order-details").length) {
+            var r = 1, i = "";
+            o.each(function(a) {
+                var e = t(this), o = n.getProductsListType(e);
+                i !== o && (i = o, r = 1), e.data("position", r++), e.data("list", o);
             });
             var s = {
                 event: "EECproductImpression",
                 ecommerce: {
-                    currencyCode: r.first().data("currency"),
-                    impressions: o.getProductsData(r)
+                    currencyCode: o.first().data("currency"),
+                    impressions: n.getProductsData(o)
                 }
             };
-            o.postToDataLayer(s);
+            n.postToDataLayer(s);
         }
     }
     function e() {
-        var a = t(this).closest(".product").find(".shop-analytics-product-details"), e = a.first().data("list"), r = {
+        var a = t(this).closest(".product").find(".shop-analytics-product-details"), e = a.first().data("list"), o = {
             event: "EECproductClick",
             ecommerce: {
                 click: {
                     actionField: {
                         list: e
                     },
-                    products: o.getProductsData(a)
+                    products: n.getProductsData(a)
                 }
             }
         };
-        localStorage.setItem("shop-analytics-list-type", e), o.postToDataLayer(r);
+        localStorage.setItem("shop-analytics-list-type", e), n.postToDataLayer(o);
     }
-    var o = document.shopAnalytics;
-    t(a), t(document).on("click", ".products .product a", e);
+    function o() {
+        var t = {
+            event: "UniversalEvent",
+            eventCategory: "User",
+            eventAction: "Click",
+            eventLabel: "login"
+        };
+        n.postToDataLayer(t);
+    }
+    var n = document.shopAnalytics;
+    t(a), t(document).on("click", ".products .product a", e).on("click", '.woocommerce-form-login button[name="login"]', o);
 }(jQuery);

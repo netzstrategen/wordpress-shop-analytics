@@ -2,7 +2,7 @@
 
 /*
   Plugin Name: Shop Analytics
-  Version: 1.1.5
+  Version: 1.2.0
   Text Domain: shop-analytics
   Description: Integrates Google Tag Manager and Google Analytics into WooCommerce.
   Author: netzstrategen
