@@ -2,27 +2,27 @@
 
 window.dataLayer = window.dataLayer || [], document.shopAnalytics = {
     getProductsData: function(t) {
-        var a = [];
+        var e = [];
         return t.each(function() {
-            var t = jQuery(this), e = t.data(), o = {
-                name: e.name,
-                id: String(e.sku),
-                price: e.price,
-                category: e.category
+            var t = jQuery(this), o = t.data(), a = {
+                name: o.name,
+                id: String(o.sku),
+                price: o.price,
+                category: o.category
             };
-            e.brand && (o.brand = e.brand), e.variant && (o.variant = e.variant), e.quantity && (o.quantity = parseInt(e.quantity)), 
-            e.position && (o.position = e.position), e.list && (o.list = e.list), a.push(o);
-        }), a;
+            o.brand && (a.brand = o.brand), o.variant && (a.variant = o.variant), o.quantity && (a.quantity = parseInt(o.quantity)), 
+            o.position && (a.position = o.position), o.list && (a.list = o.list), e.push(a);
+        }), e;
     },
     getProductsListType: function(t) {
         return t.closest(".cross-sells").length ? "Cross-sells products" : t.closest(".related").length ? "Related products" : "Product Category";
     },
     getProductVariationAttributes: function(t) {
-        var a = [];
+        var e = [];
         return jQuery(t).each(function() {
             var t = jQuery(this);
-            t.val().trim() && a.push(t.text().trim());
-        }), a.join(", ");
+            t.val().trim() && e.push(t.text().trim());
+        }), e.join(", ");
     },
     getVariationId: function() {
         return jQuery(".woocommerce-variation-add-to-cart-enabled .variation_id").val();
@@ -33,49 +33,68 @@ window.dataLayer = window.dataLayer || [], document.shopAnalytics = {
     postToDataLayer: function(t) {
         "object" == typeof t && ("on" === shop_analytics_settings.datalayer_console_log && console.dir(t), 
         window.dataLayer.push(t));
-    }
-}, function(t) {
-    function a(a, e) {
-        var o = t(e && e.responseText ? e.responseText : document).find(".shop-analytics-product-details");
-        if (o.length && !o.parents(".shop-analytics-order-details").length) {
-            var r = 1, i = "";
-            o.each(function(a) {
-                var e = t(this), o = n.getProductsListType(e);
-                i !== o && (i = o, r = 1), e.data("position", r++), e.data("list", o);
-            });
-            var s = {
-                event: "EECproductImpression",
-                ecommerce: {
-                    currencyCode: o.first().data("currency"),
-                    impressions: n.getProductsData(o)
-                }
-            };
-            n.postToDataLayer(s);
+    },
+    event: {
+        click: {
+            login: '.woocommerce-form-login button[name="login"]',
+            register: '.woocommerce-form-register button[name="register"]',
+            registerOnCheckoutSubmit: ".woocommerce-checkout #place_order"
         }
     }
-    function e() {
-        var a = t(this).closest(".product").find(".shop-analytics-product-details"), e = a.first().data("list"), o = {
+}, function(t) {
+    function e(e, o) {
+        var a = t(o && o.responseText ? o.responseText : document).find(".shop-analytics-product-details");
+        if (a.length && !a.parents(".shop-analytics-order-details").length) {
+            var n = 1, r = "";
+            a.each(function(e) {
+                var o = t(this), a = i.getProductsListType(o);
+                r !== a && (r = a, n = 1), o.data("position", n++), o.data("list", a);
+            });
+            var c = {
+                event: "EECproductImpression",
+                ecommerce: {
+                    currencyCode: a.first().data("currency"),
+                    impressions: i.getProductsData(a)
+                }
+            };
+            i.postToDataLayer(c);
+        }
+    }
+    function o() {
+        var e = t(this).closest(".product").find(".shop-analytics-product-details"), o = e.first().data("list"), a = {
             event: "EECproductClick",
             ecommerce: {
                 click: {
                     actionField: {
-                        list: e
+                        list: o
                     },
-                    products: n.getProductsData(a)
+                    products: i.getProductsData(e)
                 }
             }
         };
-        localStorage.setItem("shop-analytics-list-type", e), n.postToDataLayer(o);
+        localStorage.setItem("shop-analytics-list-type", o), i.postToDataLayer(a);
     }
-    function o() {
+    function a() {
         var t = {
             event: "UniversalEvent",
             eventCategory: "User",
             eventAction: "Click",
             eventLabel: "login"
         };
-        n.postToDataLayer(t);
+        i.postToDataLayer(t);
     }
-    var n = document.shopAnalytics;
-    t(a), t(document).on("click", ".products .product a", e).on("click", '.woocommerce-form-login button[name="login"]', o);
+    function n() {
+        var t = {
+            event: "UniversalEvent",
+            eventCategory: "User",
+            eventAction: "Click",
+            eventLabel: "register"
+        };
+        i.postToDataLayer(t);
+    }
+    function r() {
+        t("#createaccount").is(":checked") && n();
+    }
+    var i = document.shopAnalytics;
+    t(e), t(document).on("click", ".products .product a", o).on("click", document.shopAnalytics.event.click.login, a).on("click", document.shopAnalytics.event.click.register, n).on("click", document.shopAnalytics.event.click.registerOnCheckoutSubmit, r);
 }(jQuery);

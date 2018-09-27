@@ -103,6 +103,14 @@ document.shopAnalytics = {
       }
       window.dataLayer.push(event_data);
     }
+  },
+
+  event: {
+    click: {
+      login: '.woocommerce-form-login button[name="login"]',
+      register: '.woocommerce-form-register button[name="register"]',
+      registerOnCheckoutSubmit: '.woocommerce-checkout #place_order'
+    }
   }
 };
 
@@ -113,7 +121,9 @@ document.shopAnalytics = {
 
   $(document)
     .on('click', '.products .product a', onProductClick)
-    .on('click', '.woocommerce-form-login button[name="login"]', onLoginFormSubmit);
+    .on('click', document.shopAnalytics.event.click.login, onLoginFormSubmit)
+    .on('click', document.shopAnalytics.event.click.register, onRegisterFormSubmit)
+    .on('click', document.shopAnalytics.event.click.registerOnCheckoutSubmit, onRegisterOnCheckoutSubmit);
 
   /**
    * Collects details about products displayed on the page when loaded or added
@@ -186,6 +196,29 @@ document.shopAnalytics = {
       'eventLabel': 'login'
     };
     shopAnalytics.postToDataLayer(event_data);
+  }
+
+  /**
+   * Reacts to user register form submision.
+   */
+  function onRegisterFormSubmit() {
+    var event_data = {
+      'event': 'UniversalEvent',
+      'eventCategory': 'User',
+      'eventAction': 'Click',
+      'eventLabel': 'register'
+    };
+    shopAnalytics.postToDataLayer(event_data);
+  }
+
+  /**
+   * Reacts to user register on checkout form submision.
+   */
+  function onRegisterOnCheckoutSubmit() {
+    var $createAccountCheckbox = $('#createaccount');
+    if ($createAccountCheckbox.is(':checked')) {
+      onRegisterFormSubmit();
+    }
   }
 
 })(jQuery);
