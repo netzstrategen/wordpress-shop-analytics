@@ -38,7 +38,7 @@ window.dataLayer = window.dataLayer || [], document.shopAnalytics = {
         click: {
             login: '.woocommerce-form-login button[name="login"]',
             register: '.woocommerce-form-register button[name="register"]',
-            registerOnCheckoutSubmit: ".woocommerce-checkout #place_order"
+            registerOnCheckout: ".woocommerce-checkout #place_order"
         }
     }
 }, function(t) {
