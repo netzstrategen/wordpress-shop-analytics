@@ -123,7 +123,7 @@ document.shopAnalytics = {
     .on('click', '.products .product a', onProductClick)
     .on('click', document.shopAnalytics.event.click.login, onLoginFormSubmit)
     .on('click', document.shopAnalytics.event.click.register, onRegisterFormSubmit)
-    .on('click', document.shopAnalytics.event.click.registerOnCheckoutSubmit, onRegisterOnCheckoutSubmit);
+    .on('click', document.shopAnalytics.event.click.registerOnCheckout, onRegisterOnCheckoutSubmit);
 
   /**
    * Collects details about products displayed on the page when loaded or added
