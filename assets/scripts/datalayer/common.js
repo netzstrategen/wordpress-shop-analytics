@@ -103,6 +103,14 @@ document.shopAnalytics = {
       }
       window.dataLayer.push(event_data);
     }
+  },
+
+  event: {
+    click: {
+      login: '.woocommerce-form-login button[name="login"]',
+      register: '.woocommerce-form-register button[name="register"]',
+      registerOnCheckout: '.woocommerce-checkout #place_order'
+    }
   }
 };
 
@@ -112,7 +120,10 @@ document.shopAnalytics = {
   $(onLoad);
 
   $(document)
-    .on('click', '.products .product a', onProductClick);
+    .on('click', '.products .product a', onProductClick)
+    .on('click', document.shopAnalytics.event.click.login, onLoginFormSubmit)
+    .on('click', document.shopAnalytics.event.click.register, onRegisterFormSubmit)
+    .on('click', document.shopAnalytics.event.click.registerOnCheckout, onRegisterOnCheckoutSubmit);
 
   /**
    * Collects details about products displayed on the page when loaded or added
@@ -172,6 +183,42 @@ document.shopAnalytics = {
     // Save the type of list where the clicked product is displayed.
     localStorage.setItem('shop-analytics-list-type', list_type);
     shopAnalytics.postToDataLayer(event_data);
+  }
+
+  /**
+   * Reacts to user login form submision.
+   */
+  function onLoginFormSubmit() {
+    var event_data = {
+      'event': 'UniversalEvent',
+      'eventCategory': 'User',
+      'eventAction': 'Click',
+      'eventLabel': 'login'
+    };
+    shopAnalytics.postToDataLayer(event_data);
+  }
+
+  /**
+   * Reacts to user register form submision.
+   */
+  function onRegisterFormSubmit() {
+    var event_data = {
+      'event': 'UniversalEvent',
+      'eventCategory': 'User',
+      'eventAction': 'Click',
+      'eventLabel': 'register'
+    };
+    shopAnalytics.postToDataLayer(event_data);
+  }
+
+  /**
+   * Reacts to user register on checkout form submision.
+   */
+  function onRegisterOnCheckoutSubmit() {
+    var $createAccountCheckbox = $('#createaccount');
+    if ($createAccountCheckbox.is(':checked')) {
+      onRegisterFormSubmit();
+    }
   }
 
 })(jQuery);

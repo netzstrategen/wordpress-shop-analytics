@@ -15,9 +15,10 @@ gulp.task('scripts', ['eslint'], function () {
   gulp.src('assets/scripts/**/*.js')
   .pipe(uglify({
     output: { beautify: true }
-  }).on('error', function(e){
-    console.log(e);
   }))
+  .on('error', function(e){
+    console.log(e);
+  })
   .pipe(eol('\n'))
   .pipe(gulp.dest('./dist/scripts'));
 });
