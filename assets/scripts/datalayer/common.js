@@ -126,13 +126,12 @@ document.shopAnalytics = {
     .on('click', document.shopAnalytics.event.click.registerOnCheckout, onRegisterOnCheckoutSubmit);
 
   /**
-   * Collects details about products displayed on the page when loaded or added
-   * dynamically with AJAX. Each product is assigned a position as an index to
-   * its order in the list/block it is contained (Related products, Cross-sells,
-   * Category).
+   * Collects details about products displayed on the page when loaded. Each product is assigned
+   * a position as an index to its order in the list/block it is contained (Related products,
+   * Cross-sells, Category).
    */
-  function onLoad(event, xhr) {
-    var $products = $(xhr && xhr.responseText ? xhr.responseText : document).find('.shop-analytics-product-details');
+  function onLoad() {
+    var $products = $(document).find('.shop-analytics-product-details');
     if (!$products.length || $products.parents('.shop-analytics-order-details').length) {
       return;
     }

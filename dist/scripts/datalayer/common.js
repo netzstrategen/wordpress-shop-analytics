@@ -42,22 +42,22 @@ window.dataLayer = window.dataLayer || [], document.shopAnalytics = {
         }
     }
 }, function(t) {
-    function e(e, o) {
-        var a = t(o && o.responseText ? o.responseText : document).find(".shop-analytics-product-details");
-        if (a.length && !a.parents(".shop-analytics-order-details").length) {
-            var n = 1, r = "";
-            a.each(function(e) {
-                var o = t(this), a = i.getProductsListType(o);
-                r !== a && (r = a, n = 1), o.data("position", n++), o.data("list", a);
+    function e() {
+        var e = t(document).find(".shop-analytics-product-details");
+        if (e.length && !e.parents(".shop-analytics-order-details").length) {
+            var o = 1, a = "";
+            e.each(function(e) {
+                var n = t(this), r = i.getProductsListType(n);
+                a !== r && (a = r, o = 1), n.data("position", o++), n.data("list", r);
             });
-            var c = {
+            var n = {
                 event: "EECproductImpression",
                 ecommerce: {
-                    currencyCode: a.first().data("currency"),
-                    impressions: i.getProductsData(a)
+                    currencyCode: e.first().data("currency"),
+                    impressions: i.getProductsData(e)
                 }
             };
-            i.postToDataLayer(c);
+            i.postToDataLayer(n);
         }
     }
     function o() {
@@ -96,5 +96,5 @@ window.dataLayer = window.dataLayer || [], document.shopAnalytics = {
         t("#createaccount").is(":checked") && n();
     }
     var i = document.shopAnalytics;
-    t(e), t(document).on("click", ".products .product a", o).on("click", document.shopAnalytics.event.click.login, a).on("click", document.shopAnalytics.event.click.register, n).on("click", document.shopAnalytics.event.click.registerOnCheckoutSubmit, r);
+    t(e), t(document).on("click", ".products .product a", o).on("click", document.shopAnalytics.event.click.login, a).on("click", document.shopAnalytics.event.click.register, n).on("click", document.shopAnalytics.event.click.registerOnCheckout, r);
 }(jQuery);
