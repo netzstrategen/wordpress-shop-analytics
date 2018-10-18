@@ -116,6 +116,8 @@ document.shopAnalytics = {
 
 (function ($) {
   var shopAnalytics = document.shopAnalytics;
+  var products_list_count = 0;
+  var products_list_observer = 0;
 
   $(onLoad);
 
@@ -131,10 +133,14 @@ document.shopAnalytics = {
    * its order in the list/block it is contained (Related products, Cross-sells,
    * Category).
    */
-  function onLoad(event, xhr) {
-    var $products = $(xhr && xhr.responseText ? xhr.responseText : document).find('.shop-analytics-product-details');
+  function onLoad() {
+    var $products = $(document).find('.shop-analytics-product-details');
     if (!$products.length || $products.parents('.shop-analytics-order-details').length) {
       return;
+    }
+
+    if (!products_list_count) {
+      products_list_count = $products.length;
     }
 
     // Assign a list type (Related products, Cross-sells, Category) and a position
@@ -153,6 +159,12 @@ document.shopAnalytics = {
       $this.data('list', current_product_list_type);
     });
 
+    // Discards products in the main products list that are already tracked.
+    if ($products.length > products_list_count) {
+      $products = $products.filter('body.woocommerce ul.products .shop-analytics-product-details').slice(products_list_count);
+      products_list_count = $products.length;
+    }
+
     var event_data = {
       event: 'EECproductImpression',
       ecommerce: {
@@ -161,6 +173,28 @@ document.shopAnalytics = {
       }
     };
     shopAnalytics.postToDataLayer(event_data);
+
+    // Observes the list of products to detect dinamically loaded products.
+    if (!products_list_observer) {
+      products_list_observer = observeProductsList();
+    }
+  }
+
+  /**
+   * Starts a mutation observer on the products container element
+   * to detect if new products are dinamically added.
+   */
+  function observeProductsList() {
+    var targetNode = document.querySelector('body.woocommerce ul.products');
+    var observer = new MutationObserver(function(mutations) {
+      mutations.forEach(function(mutation) {
+        if (mutation.addedNodes !== null) {
+          onLoad();
+        }
+      });
+    });
+
+    return observer.observe(targetNode, {childList: true});
   }
 
   /**
