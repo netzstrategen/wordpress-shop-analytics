@@ -238,6 +238,9 @@ document.shopAnalytics = {
    */
   function observeProductsList() {
     var targetNode = document.querySelector('body.woocommerce ul.products');
+    if (!targetNode) {
+      return;
+    }
     var observer = new MutationObserver(function(mutations) {
       mutations.forEach(function(mutation) {
         if (mutation.addedNodes !== null) {
