@@ -107,13 +107,15 @@ window.dataLayer = window.dataLayer || [], document.shopAnalytics = {
     }
     function o() {
         var e = document.querySelector("body.woocommerce ul.products");
-        return new MutationObserver(function(e) {
-            e.forEach(function(e) {
-                null !== e.addedNodes && t();
+        if (e) {
+            return new MutationObserver(function(e) {
+                e.forEach(function(e) {
+                    null !== e.addedNodes && t();
+                });
+            }).observe(e, {
+                childList: !0
             });
-        }).observe(e, {
-            childList: !0
-        });
+        }
     }
     function i() {
         var t = e(this).closest(".product").find(".shop-analytics-product-details"), o = t.first().data("list"), i = {
