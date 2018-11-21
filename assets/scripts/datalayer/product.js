@@ -6,7 +6,8 @@
   $(onLoad);
 
   $(document)
-    .on('change', '.cart .quantity .qty', updateProductQuantity);
+    .on('change', '.cart .quantity .qty', updateProductQuantity)
+    .on('change', '#lowest_delivery_variations', onLowestDeliveryVariationSelected);
 
   /**
    * Reacts to loading of a product details page.
@@ -46,6 +47,27 @@
   function updateProductQuantity() {
     var $this = $(this);
     $('.shop-analytics-single-product-details').data('quantity', $this.val());
+  }
+
+  /**
+   * Reacts to the selection of a product variation from the dropdown list
+   * of variations with lowest delivery time.
+   */
+  function onLowestDeliveryVariationSelected() {
+    var $this = $(this);
+    var event_data = {
+      'event' : 'UniversalEvent',
+      'eventCategory' : 'Products',
+      'eventAction' : 'clicked express',
+      'eventLabel' : ''
+    };
+    var product_data = shopAnalytics.getProductsData($(shopAnalytics.product.elements.singleProductDetails))[0];
+
+    if (product_data.name) {
+      event_data.eventLabel = product_data.name;
+    }
+
+    shopAnalytics.postToDataLayer(event_data);
   }
 
 })(jQuery);
