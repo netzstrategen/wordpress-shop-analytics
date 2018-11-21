@@ -83,6 +83,11 @@ window.dataLayer = window.dataLayer || [], document.shopAnalytics = {
             shipToSameAddress: "Ship to same address",
             shipToDifferentAddress: "Ship to different address"
         }
+    },
+    product: {
+        elements: {
+            singleProductDetails: ".shop-analytics-single-product-details"
+        }
     }
 }, function(e) {
     function t() {
@@ -149,10 +154,10 @@ window.dataLayer = window.dataLayer || [], document.shopAnalytics = {
         };
         l.postToDataLayer(e);
     }
-    function r() {
+    function c() {
         e("#createaccount").is(":checked") && a();
     }
-    function c() {
+    function r() {
         var t = e(l.cart.elements.product);
         l.updateCartItemsQuantity(t), d(t);
     }
@@ -172,5 +177,5 @@ window.dataLayer = window.dataLayer || [], document.shopAnalytics = {
         localStorage.setItem("productsInCartData", JSON.stringify(t)), l.postToDataLayer(o);
     }
     var l = document.shopAnalytics, p = 0, u = 0;
-    e(t), e(document).on("click", l.event.click.login, n).on("click", l.event.click.register, a).on("click", l.event.click.registerOnCheckout, r).ajaxComplete(t).on("click", ".products .product a", i).on("click", ".remove_from_cart_button, .woocommerce-cart-form .product-remove > a, .cart_item td.product-remove .remove", s).on("click", "th.product-remove .remove", c);
+    e(t), e(document).on("click", l.event.click.login, n).on("click", l.event.click.register, a).on("click", l.event.click.registerOnCheckout, c).ajaxComplete(t).on("click", ".products .product a", i).on("click", ".remove_from_cart_button, .woocommerce-cart-form .product-remove > a, .cart_item td.product-remove .remove", s).on("click", "th.product-remove .remove", r);
 }(jQuery);

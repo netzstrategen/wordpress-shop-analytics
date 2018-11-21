@@ -160,7 +160,12 @@ document.shopAnalytics = {
       shipToSameAddress: 'Ship to same address',
       shipToDifferentAddress: 'Ship to different address'
     }
-  }
+  },
+  product: {
+    elements: {
+      singleProductDetails: '.shop-analytics-single-product-details'
+    }
+  },
 };
 
 (function ($) {
