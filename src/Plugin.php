@@ -292,7 +292,7 @@ class Plugin {
     wp_localize_script($handle . '_common', Plugin::PREFIX . '_settings', [
       'datalayer_console_log' => (int) get_option('shop_analytics_datalayer_logging') ? 'on' : 'off'
     ]);
-    wp_enqueue_script($handle . '_cart', "$scripts/cart.js", [$handle . '_common'], FALSE, TRUE);
+    wp_enqueue_script($handle . '_cart', "$scripts/cart-checkout.js", [$handle . '_common'], FALSE, TRUE);
 
     if (is_cart() || is_checkout()) {
       if (is_cart()) {
