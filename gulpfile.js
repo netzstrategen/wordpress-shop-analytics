@@ -14,7 +14,7 @@ gulp.task('eslint', function () {
 gulp.task('scripts', ['eslint'], function () {
   gulp.src('assets/scripts/**/*.js')
   .pipe(uglify({
-    output: { beautify: true }
+    output: { beautify: false }
   }))
   .on('error', function(e){
     console.log(e);
