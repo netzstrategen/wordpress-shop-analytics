@@ -337,7 +337,8 @@ class WooCommerce {
       foreach ($attributes as $attribute_name => $options) {
         $attribute = isset($_REQUEST['attribute_' . sanitize_title($attribute_name)]) ? wc_clean(stripslashes(urldecode($_REQUEST['attribute_' . sanitize_title($attribute_name)]))) : '';
         if ($attribute) {
-          $selected_attributes[] = get_term_by('slug', $attribute, $attribute_name)->name;
+          $attribute_term_data = get_term_by('slug', $attribute, $attribute_name);
+          $selected_attributes[] = $attribute_term_data ? $attribute_term_data->name : $attribute;
         }
       }
       if ($selected_attributes) {
