@@ -187,6 +187,25 @@ document.shopAnalytics = {
     .on('click', 'th.product-remove .remove', onEmptyCart);
 
   /**
+   * Reacts to product removal from the cart.
+   *
+   * Savoy theme blocks WooCommerce remove from cart events,
+   * so we have to detect the "remove from cart" Ajax operation
+   * in order to track it.
+   */
+  $(document).ajaxSuccess(function(event, xhr, settings) {
+    if (settings === undefined || settings.data === undefined) {
+      return;
+    }
+    if (settings.data.indexOf('nm_cart_panel_remove_product') >= 0) {
+      var pos = settings.data.indexOf('cart_item_key=') + 14;
+      var item_key = settings.data.substring(pos);
+      var $remove = $('a[data-item_key="' + item_key + '"]');
+      removeProductsFromCart($remove);
+    }
+  });
+
+  /**
    * Collects details about products displayed on the page when loaded or added
    * dynamically with AJAX. Each product is assigned a position as an index to
    * its order in the list/block it is contained (Related products, Cross-sells,
