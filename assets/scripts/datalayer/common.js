@@ -163,6 +163,7 @@ document.shopAnalytics = {
   },
   product: {
     elements: {
+      addToCartButton: '.single_add_to_cart_button',
       singleProductDetails: '.shop-analytics-single-product-details'
     }
   },
@@ -181,6 +182,7 @@ document.shopAnalytics = {
     .on('click', shopAnalytics.event.click.registerOnCheckout, onRegisterOnCheckoutSubmit)
     .ajaxComplete(onLoad)
     .on('click', '.products .product a', onProductClick)
+    .on('click', shopAnalytics.product.elements.addToCartButton, onProductAddToCart)
     .on('click', '.remove_from_cart_button, .woocommerce-cart-form .product-remove > a, .cart_item td.product-remove .remove', onRemoveSingleProduct)
     .on('click', 'th.product-remove .remove', onEmptyCart);
 
@@ -276,6 +278,40 @@ document.shopAnalytics = {
     };
     // Save the type of list where the clicked product is displayed.
     localStorage.setItem('shop-analytics-list-type', list_type);
+    shopAnalytics.postToDataLayer(event_data);
+  }
+
+  /**
+   * Reacts to adding a product to cart.
+   */
+  function onProductAddToCart() {
+    var $this = $(this);
+    if ($this.is('.disabled')) {
+      return;
+    }
+    var $products = $('.shop-analytics-single-product-details');
+    var variation;
+    var variation_id;
+    var custom_name;
+    var event_data = {
+      event: 'EECaddToCart',
+      ecommerce: {
+        currencyCode: $products.first().data('currency'),
+        add: {
+          products: shopAnalytics.getProductsData($products)
+        }
+      }
+    };
+    variation = shopAnalytics.getProductVariationAttributes('.variations_form option:selected');
+    if (variation) {
+      event_data.ecommerce.add.products[0].variant = variation;
+      variation_id = shopAnalytics.getVariationId();
+      event_data.ecommerce.add.products[0].id = variation_id;
+      // Override product name with custom name, if it exists.
+      if (custom_name = shopAnalytics.getVariationName(variation_id)) {
+        event_data.ecommerce.add.products[0].name = custom_name;
+      }
+    }
     shopAnalytics.postToDataLayer(event_data);
   }
 
