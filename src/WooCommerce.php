@@ -466,7 +466,7 @@ class WooCommerce {
     $field_name = Plugin::PREFIX . '_custom_product_name';
 
     if (isset($_POST[$field_name])) {
-      if ($custom_product_name = $_POST[$field_name]) {
+      if (!is_array($_POST[$field_name]) && $custom_product_name = $_POST[$field_name]) {
         update_post_meta($post_id, $field_name, $custom_product_name);
       }
       else {
