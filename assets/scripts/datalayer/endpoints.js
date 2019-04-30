@@ -20,14 +20,14 @@
    */
   function onOrderReceived () {
     var $order = $(document).find('.shop-analytics-order-details');
-    var orderId = String($order.data('id'));
-    var orderPostId = String($order.data('post_id'));
+    var orderNumber = String($order.data('order_number'));
+    var orderId = String($order.data('order_id'));
     // Ensure we are not tracking the same order again.
     var trackedOrders = JSON.parse(localStorage.getItem('shop-analytics-tracked-orders'));
-    if (trackedOrders && (trackedOrders.includes(orderId) || trackedOrders.includes(orderPostId))) {
+    if (trackedOrders && (trackedOrders.includes(orderNumber) || trackedOrders.includes(orderId))) {
       return;
     } else {
-      trackedOrders.push(orderPostId, orderId);
+      trackedOrders.push(orderId, orderNumber);
       localStorage.setItem('shop-analytics-tracked-orders', JSON.stringify(trackedOrders));
     }
     var $products = $order.find('.shop-analytics-product-details');
@@ -36,7 +36,7 @@
       ecommerce: {
         purchase: {
           actionField: {
-            id: orderId,
+            id: orderNumber,
             revenue: String($order.data('revenue')).replace(/,/g, ''),
             tax: String($order.data('tax')).replace(/,/g, ''),
             shipping: String($order.data('shipping')).replace(/,/g, ''),

@@ -378,8 +378,8 @@ class WooCommerce {
     $order_data = $order->get_data();
 
     $order_details = [
-      'id' => $order->get_order_number(),
-      'post_id' => $order_id,
+      'order_number' => $order->get_order_number(),
+      'order_id' => $order_id,
       'currency' => $order_data['currency'],
       'revenue' => $order_data['total'],
       'tax' => $order_data['cart_tax'],
