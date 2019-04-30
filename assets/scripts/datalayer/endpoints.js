@@ -21,12 +21,13 @@
   function onOrderReceived () {
     var $order = $(document).find('.shop-analytics-order-details');
     var orderId = String($order.data('id'));
+    var orderPostId = String($order.data('post_id'));
     // Ensure we are not tracking the same order again.
     var trackedOrders = JSON.parse(localStorage.getItem('shop-analytics-tracked-orders'));
-    if (trackedOrders && trackedOrders.includes(orderId)) {
+    if (trackedOrders && (trackedOrders.includes(orderId) || trackedOrders.includes(orderPostId))) {
       return;
     } else {
-      trackedOrders.push(orderId);
+      trackedOrders.push(orderPostId, orderId);
       localStorage.setItem('shop-analytics-tracked-orders', JSON.stringify(trackedOrders));
     }
     var $products = $order.find('.shop-analytics-product-details');
