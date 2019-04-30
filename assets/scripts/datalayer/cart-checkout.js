@@ -15,7 +15,8 @@
     .on('change', shopAnalytics.checkout.elements.shippingAddressFields, onShippingAddressUpdate);
 
   $('form.checkout')
-    .on('change', shopAnalytics.checkout.elements.shippingMethods, onShippingMethodUpdated);
+    .on('change', shopAnalytics.checkout.elements.shippingMethods, onShippingMethodUpdated)
+    .on('click', shopAnalytics.checkout.elements.checkoutPlaceOrderButton, onCheckoutPlaceOrder);
 
   function onLoad() {
     if (!$productsInCart.length) {
@@ -63,6 +64,14 @@
     }
 
     registerCheckoutStepEvent(shop_analytics_checkout_steps.order, selectedValue);
+  }
+
+  /**
+   * Reacts to place order button click.
+   */
+  function onCheckoutPlaceOrder() {
+    // Clears list of previously tracked orders.
+    localStorage.setItem('shop-analytics-tracked-orders', JSON.stringify([]));
   }
 
   /**

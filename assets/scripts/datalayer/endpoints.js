@@ -20,13 +20,22 @@
    */
   function onOrderReceived () {
     var $order = $(document).find('.shop-analytics-order-details');
+    var orderId = String($order.data('id'));
+    // Ensure we are not tracking the same order again.
+    var trackedOrders = JSON.parse(localStorage.getItem('shop-analytics-tracked-orders'));
+    if (trackedOrders && trackedOrders.includes(orderId)) {
+      return;
+    } else {
+      trackedOrders.push(orderId);
+      localStorage.setItem('shop-analytics-tracked-orders', JSON.stringify(trackedOrders));
+    }
     var $products = $order.find('.shop-analytics-product-details');
     var event_data = {
       event: 'EECpurchase',
       ecommerce: {
         purchase: {
           actionField: {
-            id: String($order.data('id')),
+            id: orderId,
             revenue: String($order.data('revenue')).replace(/,/g, ''),
             tax: String($order.data('tax')).replace(/,/g, ''),
             shipping: String($order.data('shipping')).replace(/,/g, ''),
