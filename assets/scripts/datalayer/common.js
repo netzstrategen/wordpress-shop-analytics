@@ -154,7 +154,8 @@ document.shopAnalytics = {
       billingAddressFieldsRequired: '.woocommerce-billing-fields .validate-required input.input-text, .woocommerce-billing-fields .validate-required select',
       shippingAddressFields: '.woocommerce-shipping-fields input.input-text, .woocommerce-shipping-fields select',
       shippingAddressFieldsRequired: '.woocommerce-shipping-fields .validate-required input.input-text, .woocommerce-shipping-fields .validate-required select',
-      shippingAddressToggle: '#ship-to-different-address-checkbox'
+      shippingAddressToggle: '#ship-to-different-address-checkbox',
+      checkoutPlaceOrderButton: '#place_order',
     },
     messages: {
       shipToSameAddress: 'Ship to same address',
