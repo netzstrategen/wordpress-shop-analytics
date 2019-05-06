@@ -20,7 +20,7 @@
    */
   function onOrderReceived () {
     var $order = $(document).find('.shop-analytics-order-details');
-    var orderNumber = String($order.data('order_number'));
+    var orderId = String($order.data('id'));
     // Ensure we are not tracking the same order again.
     var trackedOrders = JSON.parse(localStorage.getItem('shop-analytics-tracked-orders'));
     if (trackedOrders && trackedOrders.includes(orderNumber)) {
@@ -35,7 +35,7 @@
       ecommerce: {
         purchase: {
           actionField: {
-            id: orderNumber,
+            id: orderId,
             revenue: String($order.data('revenue')).replace(/,/g, ''),
             tax: String($order.data('tax')).replace(/,/g, ''),
             shipping: String($order.data('shipping')).replace(/,/g, ''),
