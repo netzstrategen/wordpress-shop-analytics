@@ -23,10 +23,10 @@
     var orderId = String($order.data('id'));
     // Ensure we are not tracking the same order again.
     var trackedOrders = JSON.parse(localStorage.getItem('shop-analytics-tracked-orders'));
-    if (trackedOrders && trackedOrders.includes(orderNumber)) {
+    if (trackedOrders && trackedOrders.includes(orderId)) {
       return;
     } else {
-      trackedOrders.push(orderId, orderNumber);
+      trackedOrders.push(orderId);
       localStorage.setItem('shop-analytics-tracked-orders', JSON.stringify(trackedOrders));
     }
     var $products = $order.find('.shop-analytics-product-details');
