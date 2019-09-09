@@ -77,7 +77,6 @@ class WooCommerce {
       'price' => number_format($product->get_price() ?: 0, 2, '.', ''),
       'category' => $category,
       'brand' => static::getProductBrand($product_id),
-      'gtin' => ($gtin = get_post_meta($product_id, '_custom_gtin', TRUE)) ? $gtin : '' ,
       'availability' => $product->is_in_stock() ? __('In stock', Plugin::L10N) : __('Out of stock', Plugin::L10N),
       'stock' => (int) $product->get_stock_quantity(),
     ];
