@@ -81,8 +81,8 @@ class WooCommerce {
       'stock' => (int) $product->get_stock_quantity(),
     ];
 
-    // Adds product GTIN from plugin shop-standards.
-    if ($gtin = get_post_meta($product_id, '_shop-standards_gtin', TRUE)) {
+    // Adds product GTIN retrieved from a custom meta field.
+    if ($gtin = get_post_meta($product_id, Plugin::GTIN_CUSTOM_FIELD_NAME, TRUE)) {
       $details['gtin'] = $gtin;
     }
 
