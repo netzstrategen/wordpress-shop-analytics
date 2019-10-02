@@ -27,13 +27,6 @@ class Plugin {
   const L10N = self::PREFIX;
 
   /**
-   * Product GTIN custom meta field name.
-   *
-   * @var string
-   */
-  const GTIN_CUSTOM_FIELD_NAME = '_shop-standards_gtin';
-
-  /**
    * @var string
    */
   private static $baseUrl;

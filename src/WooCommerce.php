@@ -82,7 +82,7 @@ class WooCommerce {
     ];
 
     // Adds product GTIN retrieved from a custom meta field.
-    if ($gtin = get_post_meta($product_id, Plugin::GTIN_CUSTOM_FIELD_NAME, TRUE)) {
+    if ($gtin = get_post_meta($product_id, apply_filters(Plugin::PREFIX . '_gtin_custom_field_name', '_shop-standards_gtin'), TRUE)) {
       $details['gtin'] = $gtin;
     }
 
