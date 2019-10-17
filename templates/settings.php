@@ -4,6 +4,8 @@ namespace Netzstrategen\ShopAnalytics;
 
 global $wp_roles;
 
+$product_attributes = wc_get_attribute_taxonomies();
+$brand_custom_attribute = get_option('shop_analytics_brand_custom_attribute', 'product_brand');
 ?>
 
 <div class="wrap">
@@ -108,6 +110,31 @@ global $wp_roles;
           >
         </td>
       </tr>
+      <?php if ($product_attributes): ?>
+        <tr class="form-field">
+          <th scope="row">
+            <label for="shop-analytics-brand-custom-attribute"><?= __('Custom attribute used as product brand', Plugin::L10N) ?></label>
+            <p class="hint"><?= __('Slug of custom attribute used as product brand. Default: product_brand', Plugin::L10N) ?></p>
+          </th>
+          <td>
+              <select
+                id="shop-analytics-brand-custom-attribute"
+                name="shop_analytics_brand_custom_attribute"
+              >
+                <option
+                  value="product_brand"
+                  <?php selected('product_brand', $brand_custom_attribute); ?>
+                >product_brand</option>
+                <?php foreach ($product_attributes as $attribute): ?>
+                  <option
+                    value="<?= $attribute->attribute_name ?>"
+                    <?php selected($attribute->attribute_name, $brand_custom_attribute); ?>
+                  ><?= $attribute->attribute_name ?></option>
+                <?php endforeach; ?>
+              </select>
+            </td>
+        </tr>
+      <?php endif; ?>
     </table>
     <?php submit_button(); ?>
   </form>
