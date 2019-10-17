@@ -281,8 +281,37 @@ class WooCommerce {
       'orderby' => 'name',
       'fields' => 'names',
     ];
-    $brands = wp_get_post_terms($product_id, 'product_brand', $args);
+    $brands = wp_get_post_terms($product_id, static::getProductBrandTermSlug(), $args);
     return !is_wp_error($brands) ? implode(' | ', $brands) : '';
+  }
+
+  /**
+   * Returns the slug of the taxonomy term used as product brand.
+   *
+   * @return string
+   *   Product brand term slug.
+   */
+  public static function getProductBrandTermSlug() {
+    return static::getProductCustomAttributeSlug('shop_analytics_brand_custom_attribute', 'product_brand');
+  }
+
+  /**
+   * Returns the slug of a product attribute as set in the plugin configuration.
+   *
+   * @param string $settings_attribute_slug
+   *   Configuration setting name for the product attribute slug.
+   * @param string $default
+   *   Default term slug of the product attribute.
+   *
+   * @return string
+   *   Term slug of the product attribute.
+   */
+  public static function getProductCustomAttributeSlug($settings_attribute_slug, $default) {
+    $attribute_slug = get_option($settings_attribute_slug, $default);
+    if ($attribute_slug && $attribute_slug !== $default) {
+      $attribute_slug = 'pa_' . $attribute_slug;
+    }
+    return $attribute_slug;
   }
 
   /**
