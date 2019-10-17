@@ -164,10 +164,11 @@ class WooCommerce {
    */
   public static function getProductPrimaryCategoryId($product_id) {
     $primary_term_id = 0;
+    $product_category = static::getProductCategoryTermSlug();
 
     // Check if primary category is defined by Yoast's wordpress-seo plugin.
     if (class_exists('\WPSEO_Primary_Term')) {
-      $wpseo_primary_term = new \WPSEO_Primary_Term('product_cat', get_the_id());
+      $wpseo_primary_term = new \WPSEO_Primary_Term($product_category, get_the_id());
       $primary_term = $wpseo_primary_term->get_primary_term();
       if (!is_wp_error($term = get_term($primary_term))) {
         $primary_term_id = $term->term_id;
@@ -178,7 +179,7 @@ class WooCommerce {
       'orderby' => 'parent',
       'order' => 'DESC',
     ];
-    $terms = wc_get_product_terms($product_id, 'product_cat', $args);
+    $terms = wc_get_product_terms($product_id, $product_category, $args);
     if (!$primary_term_id && $terms) {
       // Consider the first category assigned to product as primary.
       $primary_term_id = $terms[0]->term_id;
@@ -200,12 +201,14 @@ class WooCommerce {
    */
   public static function getProductCategoryParents($category_id, $separator = ' > ') {
     $path = '';
-    if ($term = get_term_by('id', $category_id, 'product_cat')) {
+    $product_category = static::getProductCategoryTermSlug();
+
+    if ($term = get_term_by('id', $category_id, $product_category)) {
       $path = $term->name;
     }
-    if ($ancestors = get_ancestors($category_id, 'product_cat')) {
+    if ($ancestors = get_ancestors($category_id, $product_category)) {
       foreach ($ancestors as $ancestor) {
-        $path = get_term_by('id', $ancestor, 'product_cat')->name . $separator . $path;
+        $path = get_term_by('id', $ancestor, $product_category)->name . $separator . $path;
       }
     }
     return $path;
@@ -229,7 +232,7 @@ class WooCommerce {
       'orderby' => 'parent',
       'order' => 'DESC',
     ];
-    $terms = wc_get_product_terms($product_id, 'product_cat', $args);
+    $terms = wc_get_product_terms($product_id, static::getProductCategoryTermSlug(), $args);
     $categories = '';
     foreach ($terms as $term) {
       $categories .= static::getProductCategoryParents($term->term_id, $categories_separator) . $paths_separator;
@@ -291,8 +294,18 @@ class WooCommerce {
    * @return string
    *   Product brand term slug.
    */
-  public static function getProductBrandTermSlug() {
-    return static::getProductCustomAttributeSlug('shop_analytics_brand_custom_attribute', 'product_brand');
+  public static function getProductBrandTermSlug(): string {
+    return static::getProductAttributeSlug(Plugin::PREFIX . '_brand_attribute', 'product_brand');
+  }
+
+  /**
+   * Returns the slug of the taxonomy term used as product category.
+   *
+   * @return string
+   *   Product category term slug.
+   */
+  public static function getProductCategoryTermSlug(): string {
+    return static::getProductAttributeSlug(Plugin::PREFIX . '_category_attribute', 'product_cat');
   }
 
   /**
@@ -306,7 +319,7 @@ class WooCommerce {
    * @return string
    *   Term slug of the product attribute.
    */
-  public static function getProductCustomAttributeSlug($settings_attribute_slug, $default) {
+  public static function getProductAttributeSlug($settings_attribute_slug, $default) {
     $attribute_slug = get_option($settings_attribute_slug, $default);
     if ($attribute_slug && $attribute_slug !== $default) {
       $attribute_slug = 'pa_' . $attribute_slug;

@@ -5,7 +5,8 @@ namespace Netzstrategen\ShopAnalytics;
 global $wp_roles;
 
 $product_attributes = wc_get_attribute_taxonomies();
-$brand_custom_attribute = get_option('shop_analytics_brand_custom_attribute', 'product_brand');
+$brand_attribute = get_option('shop_analytics_brand_attribute', 'product_brand');
+$category_attribute = get_option('shop_analytics_category_attribute', 'product_cat');
 ?>
 
 <div class="wrap">
@@ -113,26 +114,51 @@ $brand_custom_attribute = get_option('shop_analytics_brand_custom_attribute', 'p
       <?php if ($product_attributes): ?>
         <tr class="form-field">
           <th scope="row">
-            <label for="shop-analytics-brand-custom-attribute"><?= __('Custom attribute used as product brand', Plugin::L10N) ?></label>
-            <p class="hint"><?= __('Slug of custom attribute used as product brand. Default: product_brand', Plugin::L10N) ?></p>
+            <label for="shop-analytics-brand-attribute"><?= __('Attribute used as product brand', Plugin::L10N) ?></label>
+            <p class="hint"><?= __('Slug of attribute used as product brand. Default: product_brand', Plugin::L10N) ?></p>
           </th>
           <td>
               <select
-                id="shop-analytics-brand-custom-attribute"
-                name="shop_analytics_brand_custom_attribute"
+                id="shop-analytics-brand-attribute"
+                name="shop_analytics_brand_attribute"
               >
                 <option
                   value="product_brand"
-                  <?php selected('product_brand', $brand_custom_attribute); ?>
+                  <?php selected('product_brand', $brand_attribute); ?>
                 >product_brand</option>
                 <?php foreach ($product_attributes as $attribute): ?>
                   <option
                     value="<?= $attribute->attribute_name ?>"
-                    <?php selected($attribute->attribute_name, $brand_custom_attribute); ?>
+                    <?php selected($attribute->attribute_name, $brand_attribute); ?>
                   ><?= $attribute->attribute_name ?></option>
                 <?php endforeach; ?>
               </select>
             </td>
+        </tr>
+      <?php endif; ?>
+      <?php if ($product_attributes): ?>
+        <tr class="form-field">
+          <th scope="row">
+            <label for="shop-analytics-category-attribute"><?= __('Attribute used as product category', Plugin::L10N) ?></label>
+            <p class="hint"><?= __('Slug of attribute used as product category. Default: product_cat', Plugin::L10N) ?></p>
+          </th>
+          <td>
+            <select
+              id="shop-analytics-category-attribute"
+              name="shop_analytics_category_attribute"
+            >
+              <option
+                value="product_cat"
+                <?php selected('product_cat', $category_attribute); ?>
+              >product_cat</option>
+              <?php foreach ($product_attributes as $attribute): ?>
+                <option
+                  value="<?= $attribute->attribute_name ?>"
+                  <?php selected($attribute->attribute_name, $category_attribute); ?>
+                ><?= $attribute->attribute_name ?></option>
+              <?php endforeach; ?>
+            </select>
+          </td>
         </tr>
       <?php endif; ?>
     </table>
