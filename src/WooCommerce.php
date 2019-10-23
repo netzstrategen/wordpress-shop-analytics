@@ -390,6 +390,10 @@ class WooCommerce {
       'payment-method' => $order_data['payment_method_title'],
     ];
 
+    if ($coupons = $order->get_coupon_codes()) {
+      $order_details['coupon'] = implode(' | ', $coupons);
+    }
+
     $html = '<div class="shop-analytics-order-details" style="display:none;height:0;" ';
     $html .= Plugin::buildAttributesDataTags($order_details) . '>';
 
