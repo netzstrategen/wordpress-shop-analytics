@@ -20,7 +20,8 @@
    */
   function onOrderReceived () {
     var $order = $(document).find('.shop-analytics-order-details');
-    var orderId = String($order.data('id'));
+    var orderData = $order.data();
+    var orderId = String(orderData.id);
     // Ensure we are not tracking the same order again.
     var trackedOrders = JSON.parse(localStorage.getItem('shop-analytics-tracked-orders'));
     if (trackedOrders && trackedOrders.includes(orderId)) {
@@ -36,14 +37,19 @@
         purchase: {
           actionField: {
             id: orderId,
-            revenue: String($order.data('revenue')).replace(/,/g, ''),
-            tax: String($order.data('tax')).replace(/,/g, ''),
-            shipping: String($order.data('shipping')).replace(/,/g, ''),
+            revenue: String(orderData.revenue).replace(/,/g, ''),
+            tax: String(orderData.tax).replace(/,/g, ''),
+            shipping: String(orderData.shipping).replace(/,/g, ''),
           },
           products: shopAnalytics.getProductsData($products)
         }
       }
     };
+
+    if (orderData.coupon) {
+      event_data.ecommerce.purchase.actionField.coupon = orderData.coupon;
+    }
+
     shopAnalytics.postToDataLayer(event_data);
   }
 
