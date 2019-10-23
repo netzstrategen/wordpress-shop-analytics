@@ -178,7 +178,7 @@ class Plugin {
   public static function getCurrentUserRole() {
     // Probably you should check against all of the users roles?
     $user = wp_get_current_user();
-    return $user->roles[0] ?? 'visitor';
+    return $user->roles ? $user->roles[0] : 'visitor';
   }
 
   /**
@@ -299,10 +299,10 @@ class Plugin {
         $checkout_step = apply_filters($checkout_step_prefix . '_view_cart', $wc_checkout_steps['view_cart']);
       }
 
-      if (is_checkout_pay_page()) {
+      if (is_checkout_pay_page() && !empty($wc_checkout_steps['checkout_pay'])) {
         $checkout_step = apply_filters($checkout_step_prefix . '_checkout_pay', $wc_checkout_steps['checkout_pay']);
       }
-      elseif (is_checkout()) {
+      elseif (is_checkout() && !empty($wc_checkout_steps['checkout_page'])) {
         $checkout_step = apply_filters($checkout_step_prefix . '_checkout_page', $wc_checkout_steps['checkout_page']);
       }
     }
