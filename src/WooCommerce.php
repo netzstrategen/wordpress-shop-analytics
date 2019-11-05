@@ -432,7 +432,7 @@ class WooCommerce {
       'payment-method' => $order_data['payment_method_title'],
     ];
 
-    if ($coupons = $order->get_coupon_codes()) {
+    if ($coupons = static::getOrderCoupons($order)) {
       $order_details['coupon'] = implode(' | ', $coupons);
     }
 
@@ -446,6 +446,26 @@ class WooCommerce {
     $html .= '</div>';
 
     return $html;
+  }
+
+  /**
+   * Retrieves the discount coupons of a given order.
+   *
+   * @param WC_Order $order
+   *   Order to retrieve coupons from.
+   *
+   * @return array
+   *   Discount coupons.
+   */
+  public static function getOrderCoupons($order) {
+    if (version_compare(WC_VERSION, '3.7.0', '<')) {
+      $coupons = $order->get_used_coupons();
+    }
+    else {
+      $coupons = $order->get_coupon_codes();
+    }
+
+    return $coupons;
   }
 
   /**
