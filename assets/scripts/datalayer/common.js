@@ -113,7 +113,12 @@ document.shopAnalytics = {
       if (shop_analytics_settings.datalayer_console_log === 'on') {
         console.dir(event_data);
       }
-      window.dataLayer.push(event_data);
+      if (shop_analytics_settings.tc_enabled) {
+        window.tc_vars.push(event_data);
+      }
+      else {
+        window.dataLayer.push(event_data);
+      }
     }
   },
 
