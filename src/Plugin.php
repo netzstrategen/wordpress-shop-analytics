@@ -292,7 +292,7 @@ class Plugin {
     wp_enqueue_script($handle . '_common', "$scripts/common.js", ['jquery'], FALSE, TRUE);
     wp_localize_script($handle . '_common', Plugin::PREFIX . '_settings', [
       'tc_enabled' => (bool) get_option('shop_analytics_tc_enabled'),
-      'datalayer_console_log' => (int) get_option('shop_analytics_datalayer_logging') ? 'on' : 'off,
+      'datalayer_console_log' => (int) get_option('shop_analytics_datalayer_logging') ? 'on' : 'off',
     ]);
     wp_enqueue_script($handle . '_cart', "$scripts/cart-checkout.js", [$handle . '_common'], FALSE, TRUE);
 
