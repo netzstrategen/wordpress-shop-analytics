@@ -269,7 +269,8 @@ class Plugin {
     global $wp;
 
     $handle = Plugin::PREFIX . '_datalayer';
-    $scripts = static::getBaseUrl() . '/dist/scripts/datalayer';
+    $source = defined('SCRIPT_DEBUG') && SCRIPT_DEBUG ? '/assets' : '/dist';
+    $scripts = static::getBaseUrl() . $source . '/scripts/datalayer';
     $checkout_step_prefix = 'shop_analytics_checkout_step_';
     $checkout_step = 0;
     $wc_checkout_steps = apply_filters('shop_analytics_checkout_steps', [
