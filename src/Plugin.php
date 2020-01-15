@@ -288,7 +288,7 @@ class Plugin {
       'order-received' => 80,
     ]);
 
-    wp_enqueue_script($handle . '_common', "$scripts/common.js", ['jquery'], FALSE, FALSE);
+    wp_enqueue_script($handle . '_common', "$scripts/common.js", ['jquery'], FALSE, TRUE);
     wp_localize_script($handle . '_common', Plugin::PREFIX . '_settings', [
       'datalayer_console_log' => (int) get_option('shop_analytics_datalayer_logging') ? 'on' : 'off'
     ]);
