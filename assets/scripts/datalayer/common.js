@@ -183,9 +183,10 @@ document.shopAnalytics = {
     .on('click', shopAnalytics.event.click.registerOnCheckout, onRegisterOnCheckoutSubmit)
     .ajaxComplete(onLoad)
     .on('click', '.products .product a', onProductClick)
-    .on('click', shopAnalytics.product.elements.addToCartButton, onProductAddToCart)
     .on('click', '.remove_from_cart_button, .woocommerce-cart-form .product-remove > a, .cart_item td.product-remove .remove', onRemoveSingleProduct)
     .on('click', 'th.product-remove .remove', onEmptyCart);
+
+  $(document.body).on('adding_to_cart', onProductAddToCart);
 
   /**
    * Reacts to product removal from the cart.
