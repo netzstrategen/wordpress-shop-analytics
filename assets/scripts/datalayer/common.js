@@ -305,12 +305,21 @@ document.shopAnalytics = {
   /**
    * Reacts to adding a product to cart.
    */
-  function onProductAddToCart() {
-    var $this = $(this);
-    if ($this.is('.disabled')) {
+  function onProductAddToCart(event, $button) {
+    if ($button.is('.disabled')) {
       return;
     }
-    var $products = $('.shop-analytics-single-product-details');
+
+    var $products;
+    if ($button.hasClass('single_add_to_cart_button')) {
+      // Product is added from single product view page.
+      $products = $('.shop-analytics-single-product-details');
+    }
+    else {
+      // Product is added from products listing page.
+      $products = $button.closest('.product').find('.shop-analytics-product-details');
+    }
+
     var variation;
     var variation_id;
     var custom_name;
