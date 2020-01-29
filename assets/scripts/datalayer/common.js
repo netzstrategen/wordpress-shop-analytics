@@ -115,8 +115,8 @@ document.shopAnalytics = {
       }
       if (shop_analytics_settings.tc_enabled == 1) {
         window.tc_vars = window.tc_vars || [];
-        //window.tC.event.generic_event = window.tC.event.generic_event || [];
-        window.tC.event.generic_event(this,event_data);
+        window.tC.event.generic_event = window.tC.event.generic_event || [];
+        window.tC.event.generic_event(this, {"payload": event_data });
       }
       else {
         window.dataLayer.push(event_data);
