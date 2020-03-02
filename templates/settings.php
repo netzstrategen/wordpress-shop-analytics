@@ -36,7 +36,7 @@ $category_attribute = get_option('shop_analytics_category_attribute', 'product_c
           <label for="shop_analytics_tc_enabled">
             <input type="checkbox" name="shop_analytics_tc_enabled" value="1" <?php checked(get_option('shop_analytics_tc_enabled')); ?> id="shop_analytics_tc_enabled">
           </label>
-          <?= __('Enable TagCommander variable outout', Plugin::L10N) ?>
+          <?= __('Enable TagCommander variable optout', Plugin::L10N) ?>
         </td>
       </tr>
       <tr class="form-field">
