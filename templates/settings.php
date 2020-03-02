@@ -31,6 +31,15 @@ $category_attribute = get_option('shop_analytics_category_attribute', 'product_c
         </td>
       </tr>
       <tr class="form-field">
+        <th scope="row"><?= __('TagCommander enabled', Plugin::L10N) ?></th>
+        <td>
+          <label for="shop_analytics_tc_enabled">
+            <input type="checkbox" name="shop_analytics_tc_enabled" value="1" <?php checked(get_option('shop_analytics_tc_enabled')); ?> id="shop_analytics_tc_enabled">
+          </label>
+          <?= __('Enable TagCommander variable optout', Plugin::L10N) ?>
+        </td>
+      </tr>
+      <tr class="form-field">
         <th scope="row"><label for="shop-analytics-track-user-id"><?= __('Track User ID', Plugin::L10N) ?></label></th>
         <td>
           <input type="checkbox" name="shop_analytics_track_user_id" value="1" <?php checked(get_option('shop_analytics_track_user_id')); ?> id="shop-analytics-track-user-id">
