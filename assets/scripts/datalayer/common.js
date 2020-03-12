@@ -184,13 +184,11 @@ document.shopAnalytics = {
   var products_list_count = 0;
   var products_list_observer = 0;
 
-  $(onLoad);
-
   $(document)
+    .ready(onLoad)
     .on('click', shopAnalytics.event.click.login, onLoginFormSubmit)
     .on('click', shopAnalytics.event.click.register, onRegisterFormSubmit)
     .on('click', shopAnalytics.event.click.registerOnCheckout, onRegisterOnCheckoutSubmit)
-    .ajaxComplete(onLoad)
     .on('click', '.products .product a', onProductClick)
     .on('click', '.single_add_to_cart_button', onProductAddToCart)
     .on('click', '.remove_from_cart_button, .woocommerce-cart-form .product-remove > a, .cart_item td.product-remove .remove', onRemoveSingleProduct)
@@ -279,9 +277,15 @@ document.shopAnalytics = {
     if (!targetNode) {
       return;
     }
+
+    // Keep track of amount of products displayed on the page.
+    document.productsLoaded = document.querySelector('body.woocommerce ul.products').childNodes.length;
     var observer = new MutationObserver(function(mutations) {
       mutations.forEach(function(mutation) {
-        if (mutation.addedNodes !== null) {
+        // Ensure new products are being displayed on the page.
+        var productsLoaded = document.querySelector('body.woocommerce ul.products').childNodes.length;
+        if (mutation.addedNodes !== null && productsLoaded !== document.productsLoaded) {
+          document.productsLoaded = productsLoaded;
           onLoad();
         }
       });
