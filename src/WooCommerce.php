@@ -168,21 +168,24 @@ class WooCommerce {
 
     // Check if primary category is defined by Yoast's wordpress-seo plugin.
     if (class_exists('\WPSEO_Primary_Term')) {
-      $wpseo_primary_term = new \WPSEO_Primary_Term($product_category, get_the_id());
+      $wpseo_primary_term = new \WPSEO_Primary_Term($product_category, $product_id);
       $primary_term = $wpseo_primary_term->get_primary_term();
       if (!is_wp_error($term = get_term($primary_term))) {
         $primary_term_id = $term->term_id;
       }
     }
 
-    $args = [
-      'orderby' => 'parent',
-      'order' => 'DESC',
-    ];
-    $terms = wc_get_product_terms($product_id, $product_category, $args);
-    if (!$primary_term_id && $terms) {
-      // Consider the first category assigned to product as primary.
-      $primary_term_id = $terms[0]->term_id;
+    // We could not get the primary category from Yoast's wordpress-seo plugin.
+    if (!$primary_term_id) {
+      $args = [
+        'orderby' => 'parent',
+        'order' => 'DESC',
+      ];
+      $terms = wc_get_product_terms($product_id, $product_category, $args);
+      if ($terms) {
+        // Consider the first category assigned to product as primary.
+        $primary_term_id = $terms[0]->term_id;
+      }
     }
 
     return $primary_term_id;
