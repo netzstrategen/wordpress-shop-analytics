@@ -4,9 +4,11 @@ namespace Netzstrategen\ShopAnalytics;
 
 global $wp_roles;
 
-$product_attributes = wc_get_attribute_taxonomies();
-$brand_attribute = get_option('shop_analytics_brand_attribute', 'product_brand');
-$category_attribute = get_option('shop_analytics_category_attribute', 'product_cat');
+$product_attributes = function_exists('wc_get_attribute_taxonomies') ? wc_get_attribute_taxonomies() : '';
+if ($product_attributes) {
+  $brand_attribute = get_option('shop_analytics_brand_attribute', 'product_brand');
+  $category_attribute = get_option('shop_analytics_category_attribute', 'product_cat');
+}
 ?>
 
 <div class="wrap">
