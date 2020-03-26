@@ -141,7 +141,7 @@
 
     event_data.ecommerce.checkout.actionField.step = step;
     if (optionLabel) {
-      event_data.ecommerce.checkout.option = optionLabel.trim();
+      event_data.ecommerce.checkout.actionField.option = optionLabel.trim();
     }
     event_data.ecommerce.checkout.products = productsData;
     shopAnalytics.postToDataLayer(event_data);
