@@ -40,6 +40,7 @@
             revenue: String(orderData.revenue).replace(/,/g, ''),
             tax: String(orderData.tax).replace(/,/g, ''),
             shipping: String(orderData.shipping).replace(/,/g, ''),
+            order_count: orderData.order_count
           },
           products: shopAnalytics.getProductsData($products)
         }
