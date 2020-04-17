@@ -440,8 +440,8 @@ class WooCommerce {
     }
 
     $order_details['order_count'] = 1;
-    if (!empty([$order_data['customer_id']]) && wc_get_customer_order_count($order_data['customer_id']) > 0) {
-      $order_details['order_count'] = wc_get_customer_order_count($order_data['customer_id']);
+    if (!empty([$order_data['customer_id']])) {
+      $order_details['order_count'] = max(1, wc_get_customer_order_count($order_data['customer_id']));
     }
 
     $html = '<div class="shop-analytics-order-details" style="display:none;height:0;" ';
