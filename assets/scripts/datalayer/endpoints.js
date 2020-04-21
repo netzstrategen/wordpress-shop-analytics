@@ -18,17 +18,19 @@
   /**
    * Retrieves details about the final purchase.
    */
-  function onOrderReceived () {
+  function onOrderReceived() {
     var $order = $(document).find('.shop-analytics-order-details');
     var orderData = $order.data();
     var orderId = String(orderData.id);
     // Ensure we are not tracking the same order again.
-    var trackedOrders = JSON.parse(localStorage.getItem('shop-analytics-tracked-orders'));
+    var trackedOrders = JSON.parse(localStorage.getItem('shop-analytics-tracked-orders')),
+        orderCount = localStorage.getItem('shop-analytics-order-count') ? (JSON.parse(localStorage.getItem('shop-analytics-order-count')) + 1) : orderData.order_count;
     if (trackedOrders && trackedOrders.includes(orderId)) {
       return;
     } else {
       trackedOrders.push(orderId);
       localStorage.setItem('shop-analytics-tracked-orders', JSON.stringify(trackedOrders));
+      localStorage.setItem('shop-analytics-order-count', JSON.stringify(orderCount));
     }
     var $products = $order.find('.shop-analytics-product-details');
     var event_data = {
@@ -40,7 +42,7 @@
             revenue: String(orderData.revenue).replace(/,/g, ''),
             tax: String(orderData.tax).replace(/,/g, ''),
             shipping: String(orderData.shipping).replace(/,/g, ''),
-            order_count: orderData.order_count
+            ordercount: orderCount,
           },
           products: shopAnalytics.getProductsData($products)
         }
