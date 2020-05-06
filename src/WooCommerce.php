@@ -439,6 +439,15 @@ class WooCommerce {
       $order_details['coupon'] = implode(' | ', $coupons);
     }
 
+    // Set order_count according to current customer_id if available,
+    // else default to 1, since this is considered user's first order.
+    // This value will be overriden in endpoint.js, if order_count is available
+    // in LocalStorage.
+    $order_details['order_count'] = 1;
+    if (!empty([$order_data['customer_id']])) {
+      $order_details['order_count'] = max(1, wc_get_customer_order_count($order_data['customer_id']));
+    }
+
     $html = '<div class="shop-analytics-order-details" style="display:none;height:0;" ';
     $html .= Plugin::buildAttributesDataTags($order_details) . '>';
 
