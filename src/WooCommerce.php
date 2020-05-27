@@ -69,12 +69,17 @@ class WooCommerce {
       $product_name = str_replace(["'", '"'], '', wp_strip_all_tags($product->get_name(), TRUE));
     }
 
+    // Price shall include taxes, depending on backend setting.
+    $product_price = wc_prices_include_tax() ?
+        wc_get_price_including_tax($product) :
+        wc_get_price_excluding_tax($product);
+
     $details = [
       'id' => $product_id,
       'sku' => $product->get_sku() ?: $product_id,
       'name' => $product_name,
       'type' => $product->get_type(),
-      'price' => number_format($product->get_price() ?: 0, 2, '.', ''),
+      'price' => number_format($product_price ?: 0, 2, '.', ''),
       'category' => $category,
       'brand' => static::getProductBrand($product_id),
       'availability' => $product->is_in_stock() ? __('In stock', Plugin::L10N) : __('Out of stock', Plugin::L10N),
