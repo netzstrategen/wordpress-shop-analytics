@@ -44,6 +44,7 @@
             tax: String(orderData.tax).replace(/,/g, ''),
             shipping: String(orderData.shipping).replace(/,/g, ''),
             ordercount: orderCount,
+            currency: orderData.currency,
           },
           products: shopAnalytics.getProductsData($products)
         }
