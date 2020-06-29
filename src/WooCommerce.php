@@ -426,12 +426,14 @@ class WooCommerce {
     }
     $order_data = $order->get_data();
 
+    $shipping_gross = $order_data['shipping_total'] + $order_data['shipping_tax'];
     $order_details = [
       'id' => $order->get_order_number(),
       'currency' => $order_data['currency'],
-      'revenue' => $order_data['total'],
+      'revenue' => $order_data['total'] - $shipping_gross,
       'tax' => $order_data['cart_tax'],
-      'shipping' => $order_data['shipping_total'],
+      'shipping' => $shipping_gross,
+      'shipping_tax' => $order_data['shipping_tax'],
       'payment-method' => $order_data['payment_method_title'],
     ];
 
