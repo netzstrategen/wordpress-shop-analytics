@@ -192,7 +192,9 @@ document.shopAnalytics = {
     .on('click', '.products .product a', onProductClick)
     .on('click', '.single_add_to_cart_button', onProductAddToCart)
     .on('click', '.remove_from_cart_button, .woocommerce-cart-form .product-remove > a, .cart_item td.product-remove .remove', onRemoveSingleProduct)
-    .on('click', 'th.product-remove .remove', onEmptyCart);
+    .on('click', 'th.product-remove .remove', onEmptyCart)
+    .on('click', 'nav a', onNavItemClick)
+  ;
 
   $(document.body).on('adding_to_cart', onProductAddToCart);
 
@@ -423,6 +425,32 @@ document.shopAnalytics = {
     var $cart_items = $(shopAnalytics.cart.elements.product);
     shopAnalytics.updateCartItemsQuantity($cart_items);
     removeProductsFromCart($cart_items);
+  }
+
+  /**
+   * Populates tracking data for the clicked nav item.
+   */
+  function onNavItemClick(e) {
+    var nav = null;
+    var context = '';
+
+    if (nav = this.closest('nav[aria-label]')) {
+      context = nav.getAttribute('aria-label');
+    }
+    else if (nav = this.closest('nav[id]')) {
+      context = nav.getAttribute('id');
+    }
+    else {
+      context = 'unknown';
+    }
+
+    var event_data = {
+      'event': 'UniversalEvent',
+      'eventCategory': 'User Interaction | ' + context.toLowerCase() + ' menu',
+      'eventAction': 'Click',
+      'eventLabel': this.innerText.toLowerCase(),
+    };
+    shopAnalytics.postToDataLayer(event_data);
   }
 
   /**
