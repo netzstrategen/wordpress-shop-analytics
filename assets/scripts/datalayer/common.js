@@ -446,9 +446,9 @@ document.shopAnalytics = {
 
     var event_data = {
       'event': 'UniversalEvent',
-      'eventCategory': 'User Interaction | ' + context.toLowerCase() + ' menu',
+      'eventCategory': 'User Interaction | ' + context + ' menu',
       'eventAction': 'Click',
-      'eventLabel': this.innerText.toLowerCase(),
+      'eventLabel': this.innerText,
     };
     shopAnalytics.postToDataLayer(event_data);
   }
