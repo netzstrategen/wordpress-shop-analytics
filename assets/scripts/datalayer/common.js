@@ -466,6 +466,9 @@ document.shopAnalytics = {
    * Reacts to removal of products from cart.
    */
   function removeProductsFromCart($products) {
+    if (!$products.length) {
+      return;
+    }
     var productsData = shopAnalytics.getProductsData($products);
     var event_data = {
       event: 'EECremoveFromCart',
