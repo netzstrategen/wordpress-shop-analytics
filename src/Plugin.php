@@ -294,7 +294,7 @@ class Plugin {
       'tc_enabled' => (bool) get_option('shop_analytics_tc_enabled'),
       'datalayer_console_log' => (int) get_option('shop_analytics_datalayer_logging') ? 'on' : 'off',
     ]);
-    wp_enqueue_script($handle . '_cart', "$scripts/cart-checkout.js", [$handle . '_common'], FALSE, TRUE);
+    wp_enqueue_script($handle . '_cart_checkout', "$scripts/cart-checkout.js", [$handle . '_common'], FALSE, TRUE);
 
     if (is_cart() || is_checkout()) {
       if (is_cart()) {
@@ -313,7 +313,6 @@ class Plugin {
     }
 
     if ($checkout_step) {
-      wp_enqueue_script($handle . '_cart_checkout', "$scripts/cart-checkout.js", [$handle . '_common'], FALSE, TRUE);
       wp_localize_script($handle . '_cart_checkout', Plugin::PREFIX . '_checkout_steps', [
         'order' => apply_filters($checkout_step_prefix . 'current', $checkout_step),
       ]);
