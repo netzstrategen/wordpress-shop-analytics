@@ -120,8 +120,9 @@ document.shopAnalytics = {
         window.tC.event.generic_event(this, {"payload": window.event_data });
       }
       else {
+        // Push to dataLayer and remove last data to prevent duplicates in Google Analytics.
         window.dataLayer.push(event_data);
-
+        window.dataLayer.splice(-1, 1);
       }
     }
   },
