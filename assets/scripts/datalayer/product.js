@@ -77,9 +77,11 @@
   function trackProductGalleryOpen() {
     var event_data = {
       event: 'UniversalEvent',
-      eventCategory: 'Product | Image | ' + document.documentElement.getAttribute('data-product-name'),
-      eventAction: 'Impression',
-      eventLabel: this.href,
+      eventCategory: 'User Interaction | Lightbox',
+      eventAction: 'open',
+      eventLabel: document.documentElement.getAttribute('data-product-name'),
+      eventValue: 0,
+      eventNonInteraction: false
     };
     shopAnalytics.postToDataLayer(event_data);
   }
