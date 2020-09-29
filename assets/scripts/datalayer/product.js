@@ -8,9 +8,7 @@
   $(document)
     .on('change', '.cart .quantity .qty', updateProductQuantity)
     .on('change', '#lowest_delivery_variations', onLowestDeliveryVariationSelected)
-    .on('click', '.single-product .woocommerce-product-gallery a', trackProductGalleryOpen)
-    .on('click', '.single-product .lg-prev', trackProductGalleryPrevious)
-    .on('click', '.single-product .lg-next', trackProductGalleryNext);
+    .on('click', '.single-product .woocommerce-product-gallery a', trackProductGalleryOpen);
 
   /**
    * Reacts to loading of a product details page.
@@ -82,32 +80,6 @@
       eventCategory: 'Product | Image | ' + document.documentElement.getAttribute('data-product-name'),
       eventAction: 'Impression',
       eventLabel: this.href,
-    };
-    shopAnalytics.postToDataLayer(event_data);
-  }
-
-  /**
-   * Tracks click of previous button in product image gallery.
-   */
-  function trackProductGalleryPrevious() {
-    var event_data = {
-      event: 'UniversalEvent',
-      eventCategory: 'Product | Image | ' + document.documentElement.getAttribute('data-product-name'),
-      eventAction: 'Impression',
-      eventLabel: $('.lg-prev-slide .lg-image').attr('src'),
-    };
-    shopAnalytics.postToDataLayer(event_data);
-  }
-
-  /**
-   * Tracks click of next button in product image gallery.
-   */
-  function trackProductGalleryNext() {
-    var event_data = {
-      event: 'UniversalEvent',
-      eventCategory: 'Product | Image | ' + document.documentElement.getAttribute('data-product-name'),
-      eventAction: 'Impression',
-      eventLabel: $('.lg-next-slide .lg-image').attr('src'),
     };
     shopAnalytics.postToDataLayer(event_data);
   }
