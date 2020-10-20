@@ -121,8 +121,15 @@
    */
   function fieldsAreFilled($fields) {
     var filled = true;
+    
+    if ($fields.length === 0) {
+      return filled;
+    }
+
     $fields.each(function() {
-      if (!$(this).val().trim().length) {
+      var fieldValue = $(this).val() || '';
+
+      if (!fieldValue.trim().length) {
         filled = false;
       }
     });
