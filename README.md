@@ -3,7 +3,7 @@ This plugin tracks the activity of customers in WooCommerce based ecommerce site
 
 The plugin acts in two general areas:
 - __Static Tracking:__ Tracking of information about the page currently displayed.
-- __Dinamic Tracking:__ Tracking of the events triggered by the customers as they interact with the site.
+- __Dynamic Tracking:__ Tracking of the events triggered by the customers as they interact with the site.
 
 In order to implement these functionalities, the plugin relies on Google Tag manager script. The plugin takes care of adding the GTM script in the page, once the required GTM ID is added to its backend configuration settings and the script injection enabled.
 
@@ -20,7 +20,7 @@ The available configuration settings are:
 - __Use anonymized E-Mail address as User ID:__ if checked, anonymized E-Mail address is applied as user ID.
 - __Track User Role:__ if checked, user role is tracked.
 - __Disable User Tracking:__ user roles that should not be tracked.
-- __Enable E-Commerce tracking:__ if checked, ecommerce related activity is tracked.
+- __Enable E-Commerce tracking:__ if checked, e-commerce related activity is tracked.
 - __Market code (fallback value):__ market default code.
 - __Enable GA dataLayer console logging:__ if checked, data object pushed to Google Data Layer is printed in the browser console. Useful for debugging purposes.
 - __Attribute used as product brand:__ if a product attribute is used to manage product brands (instead of the WooCommerce native brand field), it can be selected here. This is necessary to correctly track products brand.
@@ -35,7 +35,7 @@ The data fields can vary depending on the type of page visited. Some data fields
   - `language`: Site language.
   - `user-id`: User ID (if logged in).
   - `user-type`: User role.
-  - `user-track`: tracking status for current user (`1` means tracked, `0` untracked).
+  - `user-track`: tracking status for current user (`1` means tracked, `0` not tracked).
 
 - __Not commerce related__
   - `page-type`: Page type. Possible values are:
@@ -91,7 +91,7 @@ The activity of the user in the site triggers diverse events that are also track
 - Navigation across the shop
 - Checkout steps and details
 
-In order to collect the data to be sent to Google Data Layer, `shop-analytics` builds adds data attribute fields into hidden `<div>` and `<span>` elements. This is done during the building and rendering of the page, relying on diverse WoooCommerce hooks ([see code](https://github.com/netzstrategen/wordpress-shop-analytics/blob/5b410895b76599adf24ada7feac5733c71c42c95/src/Plugin.php#L50)). E.g.
+In order to collect the data to be sent to Google Data Layer, `shop-analytics` builds adds data attribute fields into hidden `<div>` and `<span>` elements. This is done during the building and rendering of the page, relying on diverse WooCommerce hooks ([see code](https://github.com/netzstrategen/wordpress-shop-analytics/blob/5b410895b76599adf24ada7feac5733c71c42c95/src/Plugin.php#L50)). E.g.
 
 On single product view ([see code](https://github.com/netzstrategen/wordpress-shop-analytics/blob/5b410895b76599adf24ada7feac5733c71c42c95/src/WooCommerce.php#L379))
 ```html
@@ -108,7 +108,7 @@ In order confirmation page ([see code](https://github.com/netzstrategen/wordpres
 </div>
 ```
 
-When the hidden element is ready, all the required data attribute fields added, a set of scripts take care of retrieve the information, organize it in a DataLayer obbject, and push it into Google DataLayer.
+When the hidden element is ready, all the required data attribute fields added, a set of scripts take care of retrieve the information, organize it in a DataLayer object, and push it into Google DataLayer.
 
 The JSON object pushed to Google Data Layer has a predefined basic format, which varies depending on the event to be tracked.
 
@@ -241,14 +241,14 @@ The events tracked are:
 
 ### Backend
 Code customization is possible using the provided filters:
-- [shop_analytics_product_meta_key_gtin](https://github.com/netzstrategen/wordpress-shop-analytics/blob/5b410895b76599adf24ada7feac5733c71c42c95/src/WooCommerce.php#L85): allows to modify key of the meta field used to store the products GTIN.
-- [shop_analytics_checkout_steps](https://github.com/netzstrategen/wordpress-shop-analytics/blob/5b410895b76599adf24ada7feac5733c71c42c95/src/Plugin.php#L276): allows to modify the integer used to represent WooCommerce checkout steps.
-- [shop_analytics_wc_endpoints](https://github.com/netzstrategen/wordpress-shop-analytics/blob/5b410895b76599adf24ada7feac5733c71c42c95/src/Plugin.php#L281): allows to modify the integer used to represent WooCommerce enpoints.
+- [shop_analytics_product_meta_key_gtin](https://github.com/netzstrategen/wordpress-shop-analytics/blob/5b410895b76599adf24ada7feac5733c71c42c95/src/WooCommerce.php#L85): allows to modify the name (value of `meta_key`) of the meta field used to store the products GTIN.
+- [shop_analytics_checkout_steps](https://github.com/netzstrategen/wordpress-shop-analytics/blob/5b410895b76599adf24ada7feac5733c71c42c95/src/Plugin.php#L276): allows to modify the integer used to represent each WooCommerce checkout step.
+- [shop_analytics_wc_endpoints](https://github.com/netzstrategen/wordpress-shop-analytics/blob/5b410895b76599adf24ada7feac5733c71c42c95/src/Plugin.php#L281): allows to modify the integer used to represent each WooCommerce endpoint.
 - [shop_analytics_checkout_step__view_cart](https://github.com/netzstrategen/wordpress-shop-analytics/blob/5b410895b76599adf24ada7feac5733c71c42c95/src/Plugin.php#L301): allows to modify the integer used to represent WooCommerce `view_cart` checkout step.
 - [shop_analytics_checkout_step__checkout_pay](https://github.com/netzstrategen/wordpress-shop-analytics/blob/5b410895b76599adf24ada7feac5733c71c42c95/src/Plugin.php#L305): allows to modify the integer used to represent WooCommerce `pay` checkout step.
 - [shop_analytics_checkout_step__checkout_page](https://github.com/netzstrategen/wordpress-shop-analytics/blob/5b410895b76599adf24ada7feac5733c71c42c95/src/Plugin.php#L308): allows to modify the integer used to represent WooCommerce `checkout_page` checkout step.
-- [shop_analytics_checkout_step_current](https://github.com/netzstrategen/wordpress-shop-analytics/blob/5b410895b76599adf24ada7feac5733c71c42c95/src/Plugin.php#L308): allows to modify the integer pased to the frontend to represent WooCommerce current checkout step.
+- [shop_analytics_checkout_step_current](https://github.com/netzstrategen/wordpress-shop-analytics/blob/5b410895b76599adf24ada7feac5733c71c42c95/src/Plugin.php#L308): allows to modify the integer passed to the frontend to represent WooCommerce current checkout step.
 
 ### Frontend (JS)
-It is possible to override many default values modifying the entries of the properties of the object `shopAnalytics`, which is [added to the browser document object as a property](https://github.com/netzstrategen/wordpress-shop-analytics/blob/5b410895b76599adf24ada7feac5733c71c42c95/assets/scripts/datalayer/common.js#L129-L180). This allows to customize the selectors used to trigger some dinamic tracking events, if necessary.
+It is possible to override many default values modifying the entries of the properties of the object `shopAnalytics`, which is [added to the browser document object as a property](https://github.com/netzstrategen/wordpress-shop-analytics/blob/5b410895b76599adf24ada7feac5733c71c42c95/assets/scripts/datalayer/common.js#L129-L180). This allows to customize the selectors used to trigger some dynamic tracking events, if necessary.
 
