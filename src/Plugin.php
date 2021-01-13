@@ -47,6 +47,9 @@ class Plugin {
     // Adds global site and user context attributes to HTML tag.
     add_filter('language_attributes', __CLASS__ . '::language_attributes', 99);
 
+    // Page Hiding script for Google Optimize.
+    add_action('wp_head', __CLASS__ . '::add_google_optimize_snippet');
+
     if (static::isEcommerceTrackingEnabled()) {
       // Add products details as data attributes to remove item from cart link.
       add_filter('woocommerce_cart_item_remove_link', __NAMESPACE__ . '\WooCommerce::woocommerce_cart_item_remove_link', 10, 2);
@@ -251,6 +254,17 @@ class Plugin {
   }
 
   /**
+   * Returns the status of the Google Optimize feature.
+   *
+   * @return bool
+   *   TRUE if the option `Enable Page Hiding for Google Optimize` is enabled
+   *   in the Plugin settings.
+   */
+  public static function isGoogleOptimizeEnabled(): bool {
+    return get_option('shop_analytics_google_optimize');
+  }
+
+  /**
    * The base URL path to this plugin's folder.
    *
    * Uses plugins_url() instead of plugin_dir_url() to avoid a trailing slash.
@@ -398,6 +412,20 @@ class Plugin {
         next($template_subpathnames);
       }
       throw new \InvalidArgumentException("Missing template '$template_pathname'");
+    }
+  }
+
+  /**
+   * Page Hiding script for Google Optimize.
+   */
+  public static function add_google_optimize_snippet() : void {
+    if (self::isGoogleOptimizeEnabled() && $gtm_id = get_option(self::PREFIX . '_gtm_id')) {
+      echo '<style>.async-hide { opacity: 0 !important}</style>
+      <script>(function(a,s,y,n,c,h,i,d,e){s.className+=\' \'+y;h.start=1*new Date;
+      h.end=i=function(){s.className=s.className.replace(RegExp(\' ?\'+y),\'\')};
+      (a[n]=a[n]||[]).hide=h;setTimeout(function(){i();h.end=null},c);h.timeout=c;
+      })(window,document.documentElement,\'async-hide\',\'dataLayer\',4000,
+      {\'' . $gtm_id . '\':true});</script>';
     }
   }
 

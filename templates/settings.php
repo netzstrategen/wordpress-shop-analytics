@@ -93,6 +93,20 @@ if ($product_attributes) {
       </tr>
       <tr class="form-field">
         <th scope="row">
+          <label for="shop-analytics-google-optimize"><?= __('Enable Page Hiding for Google Optimize', Plugin::L10N) ?></label>
+        </th>
+        <td>
+          <input
+            id="shop-analytics-google-optimize"
+            name="shop_analytics_google_optimize"
+            type="checkbox"
+            value="1"
+            <?php checked(Plugin::isGoogleOptimizeEnabled()); ?>
+          >
+        </td>
+      </tr>
+      <tr class="form-field">
+        <th scope="row">
           <label for="shop-analytics-market-default"><?= __('Market code (fallback value)', Plugin::L10N) ?></label>
         </th>
         <td>
