@@ -48,7 +48,7 @@ class Plugin {
     add_filter('language_attributes', __CLASS__ . '::language_attributes', 99);
 
     // Page Hiding script for Google Optimize.
-    add_action('wp_head', __CLASS__ . '::add_google_optimize_snippet');
+    add_action('wp_head', __CLASS__ . '::add_google_optimize_snippet', 0);
 
     if (static::isEcommerceTrackingEnabled()) {
       // Add products details as data attributes to remove item from cart link.
