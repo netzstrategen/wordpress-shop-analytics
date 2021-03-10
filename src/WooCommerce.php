@@ -409,6 +409,17 @@ class WooCommerce {
       }
     }
 
+    if (!isset($product_details['variant']) && $product->get_type() === 'variation') {
+      $attributes = $product->get_variation_attributes();
+      $selected_attributes = [];
+      foreach ($attributes as $attribute_name => $options) {
+        $selected_attributes[] = $options;
+      }
+      if ($selected_attributes) {
+        $product_details['variant'] = implode(', ', $selected_attributes);
+      }
+    }
+
     $class = $is_detail_view ? 'shop-analytics-single-product-details' : 'shop-analytics-product-details';
 
     $output = '<div class="' . $class . '" style="display:none;height:0;" ';
