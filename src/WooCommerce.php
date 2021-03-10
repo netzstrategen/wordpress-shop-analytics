@@ -56,12 +56,23 @@ class WooCommerce {
   public static function getProductDetails($product_id = 0, $primary_category = TRUE) {
     $product_id = $product_id ?: get_the_ID();
     $product = wc_get_product($product_id);
+    $parent_id = $product->get_parent_id();
+    $parent_product = wc_get_product($parent_id);
 
     if ($primary_category) {
       $category = static::getProductCategoryParents(static::getProductPrimaryCategoryId($product_id), '/');
     }
     else {
       $category = static::getProductCategoriesParentsList($product_id);
+    }
+
+    if (empty($category)) {
+      if ($primary_category) {
+        $category = static::getProductCategoryParents(static::getProductPrimaryCategoryId($parent_id), '/');
+      }
+      else {
+      $category = static::getProductCategoriesParentsList($parent_id);
+      }
     }
 
     // Custom product name overrides default product name.
@@ -76,7 +87,7 @@ class WooCommerce {
       'type' => $product->get_type(),
       'price' => number_format($product->get_price() ?: 0, 2, '.', ''),
       'category' => $category,
-      'brand' => static::getProductBrand($product_id),
+      'brand' => static::getProductBrand($product_id, $parent_id),
       'availability' => $product->is_in_stock() ? __('In stock', Plugin::L10N) : __('Out of stock', Plugin::L10N),
       'stock' => (int) $product->get_stock_quantity(),
     ];
@@ -282,12 +293,15 @@ class WooCommerce {
    * @return string
    *   List of product brands.
    */
-  public static function getProductBrand($product_id) {
+  public static function getProductBrand($product_id, $parent_id) {
     $args = [
       'orderby' => 'name',
       'fields' => 'names',
     ];
     $brands = wp_get_post_terms($product_id, static::getProductBrandTermSlug(), $args);
+    if (empty($brands)) {
+      $brands = wp_get_post_terms($parent_id, static::getProductBrandTermSlug(), $args);
+    }
     return !is_wp_error($brands) ? implode(' | ', $brands) : '';
   }
 
