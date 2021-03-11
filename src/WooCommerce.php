@@ -71,7 +71,7 @@ class WooCommerce {
         $category = static::getProductCategoryParents(static::getProductPrimaryCategoryId($parent_id), '/');
       }
       else {
-      $category = static::getProductCategoriesParentsList($parent_id);
+        $category = static::getProductCategoriesParentsList($parent_id);
       }
     }
 
