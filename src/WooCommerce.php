@@ -65,11 +65,13 @@ class WooCommerce {
       $category = static::getProductCategoriesParentsList($product_id);
     }
 
-    if (empty($category)) {
-      if ($primary_category) {
-        $category = static::getProductCategoryParents(static::getProductPrimaryCategoryId($parent_id ?: $product_id), '/');
+    if ($primary_category) {
+      if (!$category = static::getProductCategoryParents(static::getProductPrimaryCategoryId($product_id), '/') && $parent_id) {
+        $category = static::getProductCategoryParents(static::getProductPrimaryCategoryId($parent_id), '/');
       }
-      else {
+    }
+    else {
+      if (!$category = static::getProductCategoriesParentsList($product_id) && $parent_id) {
         $category = static::getProductCategoriesParentsList($parent_id);
       }
     }
@@ -404,11 +406,20 @@ class WooCommerce {
         $product_details['variant'] = implode(', ', $selected_attributes);
       }
     }
-    elseif (!isset($product_details['variant'])) {
+    if (('variable' === $product->get_type() && $is_detail_view) || $product->get_type() === 'variation') {
       $attributes = $product->get_variation_attributes();
       $selected_attributes = [];
       foreach ($attributes as $attribute_name => $options) {
-        $selected_attributes[] = $options;
+        $attribute = isset($_REQUEST['attribute_' . sanitize_title($attribute_name)]) ? wc_clean(stripslashes(urldecode($_REQUEST['attribute_' . sanitize_title($attribute_name)]))) : '';
+        if ($attribute) {
+          $attribute_term_data = get_term_by('slug', $attribute, $attribute_name);
+          $selected_attributes[] = $attribute_term_data ? $attribute_term_data->name : $attribute;
+        }
+      }
+      if (!$selected_attributes && $product->get_type() === 'variation') {
+        foreach ($attributes as $attribute_name => $options) {
+          $selected_attributes[] = $options;
+        }
       }
       if ($selected_attributes) {
         $product_details['variant'] = implode(', ', $selected_attributes);
