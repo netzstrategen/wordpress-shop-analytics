@@ -57,7 +57,6 @@ class WooCommerce {
     $product_id = $product_id ?: get_the_ID();
     $product = wc_get_product($product_id);
     $parent_id = $product->get_parent_id();
-    $parent_product = wc_get_product($parent_id);
 
     if ($primary_category) {
       $category = static::getProductCategoryParents(static::getProductPrimaryCategoryId($product_id), '/');
@@ -68,7 +67,7 @@ class WooCommerce {
 
     if (empty($category)) {
       if ($primary_category) {
-        $category = static::getProductCategoryParents(static::getProductPrimaryCategoryId($parent_id), '/');
+        $category = static::getProductCategoryParents(static::getProductPrimaryCategoryId($parent_id ?: $product_id), '/');
       }
       else {
         $category = static::getProductCategoriesParentsList($parent_id);
@@ -298,10 +297,7 @@ class WooCommerce {
       'orderby' => 'name',
       'fields' => 'names',
     ];
-    $brands = wp_get_post_terms($product_id, static::getProductBrandTermSlug(), $args);
-    if (empty($brands)) {
-      $brands = wp_get_post_terms($parent_id, static::getProductBrandTermSlug(), $args);
-    }
+    $brands = wp_get_post_terms($parent_id ?: $product_id, static::getProductBrandTermSlug(), $args);
     return !is_wp_error($brands) ? implode(' | ', $brands) : '';
   }
 
@@ -408,8 +404,7 @@ class WooCommerce {
         $product_details['variant'] = implode(', ', $selected_attributes);
       }
     }
-
-    if (!isset($product_details['variant']) && $product->get_type() === 'variation') {
+    elseif (!isset($product_details['variant'])) {
       $attributes = $product->get_variation_attributes();
       $selected_attributes = [];
       foreach ($attributes as $attribute_name => $options) {
