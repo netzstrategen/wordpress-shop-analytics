@@ -385,7 +385,7 @@ class WooCommerce {
     $product_id = $product->get_id();
     $product_details = static::getProductDetails($product_id);
 
-    if (('variable' === $product->get_type() && $is_detail_view) || !isset($product_details['variant']) && $product->get_type() === 'variation') {
+    if (('variable' === $product->get_type() && $is_detail_view) || (!isset($product_details['variant']) && 'variation' === $product->get_type())) {
       $attributes = $product->get_variation_attributes();
       $selected_attributes = [];
       foreach ($attributes as $attribute_name => $options) {
@@ -395,7 +395,7 @@ class WooCommerce {
           $selected_attributes[] = $attribute_term_data ? $attribute_term_data->name : $attribute;
         }
       }
-      if (!$selected_attributes && $product->get_type() === 'variation') {
+      if (!$selected_attributes && 'variation' === $product->get_type()) {
         foreach ($attributes as $attribute_name => $options) {
           $selected_attributes[] = $options;
         }
