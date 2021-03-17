@@ -59,13 +59,13 @@ class WooCommerce {
     $parent_id = $product->get_parent_id();
 
     if ($primary_category) {
-      if (!$category = static::getProductCategoryParents(static::getProductPrimaryCategoryId($product_id), '/')) {
-        $category = static::getProductCategoryParents(static::getProductPrimaryCategoryId($parent_id), '/');
+      if (!$category = static::getProductCategoryParents(static::getProductPrimaryCategoryId($parent_id), '/')) {
+        $category = static::getProductCategoryParents(static::getProductPrimaryCategoryId($product_id), '/');
       }
     }
     else {
-      if (!$category = static::getProductCategoriesParentsList($product_id)) {
-        $category = static::getProductCategoriesParentsList($parent_id);
+      if (!$category = static::getProductCategoriesParentsList($parent_id)) {
+        $category = static::getProductCategoriesParentsList($product_id);
       }
     }
 
