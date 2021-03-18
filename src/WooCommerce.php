@@ -389,14 +389,14 @@ class WooCommerce {
       $attributes = $product->get_variation_attributes();
       $selected_attributes = [];
       foreach ($attributes as $attribute_name => $options) {
-        $attribute = isset($_REQUEST['attribute_' . sanitize_title($attribute_name)]) ? wc_clean(stripslashes(urldecode($_REQUEST['attribute_' . sanitize_title($attribute_name)]))) : '';
-        if ($attribute) {
-          $attribute_term_data = get_term_by('slug', $attribute, $attribute_name);
-          $selected_attributes[] = $attribute_term_data ? $attribute_term_data->name : $attribute;
+        if ($product->get_type() === 'variable') {
+          $attribute = isset($_REQUEST['attribute_' . sanitize_title($attribute_name)]) ? wc_clean(stripslashes(urldecode($_REQUEST['attribute_' . sanitize_title($attribute_name)]))) : '';
+          if ($attribute) {
+            $attribute_term_data = get_term_by('slug', $attribute, $attribute_name);
+            $selected_attributes[] = $attribute_term_data ? $attribute_term_data->name : $attribute;
+          }
         }
-      }
-      if ($product->get_type() === 'variation' && !$selected_attributes) {
-        foreach ($attributes as $attribute_name => $options) {
+        if ($product->get_type() === 'variation' && !$selected_attributes) {
           $selected_attributes[] = $options;
         }
       }
