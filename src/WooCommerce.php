@@ -396,7 +396,7 @@ class WooCommerce {
             $selected_attributes[] = $attribute_term_data ? $attribute_term_data->name : $attribute;
           }
         }
-        if ($product->get_type() === 'variation' && !$selected_attributes) {
+        if ($product->get_type() === 'variation') {
           $selected_attributes[] = $options;
         }
       }
