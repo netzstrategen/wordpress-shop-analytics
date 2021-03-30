@@ -56,12 +56,17 @@ class WooCommerce {
   public static function getProductDetails($product_id = 0, $primary_category = TRUE) {
     $product_id = $product_id ?: get_the_ID();
     $product = wc_get_product($product_id);
+    $parent_id = $product->get_parent_id();
 
     if ($primary_category) {
-      $category = static::getProductCategoryParents(static::getProductPrimaryCategoryId($product_id), '/');
+      if (!$category = static::getProductCategoryParents(static::getProductPrimaryCategoryId($parent_id), '/')) {
+        $category = static::getProductCategoryParents(static::getProductPrimaryCategoryId($product_id), '/');
+      }
     }
     else {
-      $category = static::getProductCategoriesParentsList($product_id);
+      if (!$category = static::getProductCategoriesParentsList($parent_id)) {
+        $category = static::getProductCategoriesParentsList($product_id);
+      }
     }
 
     // Custom product name overrides default product name.
@@ -76,7 +81,7 @@ class WooCommerce {
       'type' => $product->get_type(),
       'price' => number_format($product->get_price() ?: 0, 2, '.', ''),
       'category' => $category,
-      'brand' => static::getProductBrand($product_id),
+      'brand' => static::getProductBrand($product_id, $parent_id),
       'availability' => $product->is_in_stock() ? __('In stock', Plugin::L10N) : __('Out of stock', Plugin::L10N),
       'stock' => (int) $product->get_stock_quantity(),
     ];
@@ -282,12 +287,12 @@ class WooCommerce {
    * @return string
    *   List of product brands.
    */
-  public static function getProductBrand($product_id) {
+  public static function getProductBrand($product_id, $parent_id) {
     $args = [
       'orderby' => 'name',
       'fields' => 'names',
     ];
-    $brands = wp_get_post_terms($product_id, static::getProductBrandTermSlug(), $args);
+    $brands = wp_get_post_terms($parent_id ?: $product_id, static::getProductBrandTermSlug(), $args);
     return !is_wp_error($brands) ? implode(' | ', $brands) : '';
   }
 
@@ -380,14 +385,19 @@ class WooCommerce {
     $product_id = $product->get_id();
     $product_details = static::getProductDetails($product_id);
 
-    if ('variable' === $product->get_type() && $is_detail_view) {
+    if (($product->get_type() === 'variable' && $is_detail_view) || ($product->get_type() === 'variation' && !isset($product_details['variant']))) {
       $attributes = $product->get_variation_attributes();
       $selected_attributes = [];
       foreach ($attributes as $attribute_name => $options) {
-        $attribute = isset($_REQUEST['attribute_' . sanitize_title($attribute_name)]) ? wc_clean(stripslashes(urldecode($_REQUEST['attribute_' . sanitize_title($attribute_name)]))) : '';
-        if ($attribute) {
-          $attribute_term_data = get_term_by('slug', $attribute, $attribute_name);
-          $selected_attributes[] = $attribute_term_data ? $attribute_term_data->name : $attribute;
+        if ($product->get_type() === 'variable') {
+          $attribute = isset($_REQUEST['attribute_' . sanitize_title($attribute_name)]) ? wc_clean(stripslashes(urldecode($_REQUEST['attribute_' . sanitize_title($attribute_name)]))) : '';
+          if ($attribute) {
+            $attribute_term_data = get_term_by('slug', $attribute, $attribute_name);
+            $selected_attributes[] = $attribute_term_data ? $attribute_term_data->name : $attribute;
+          }
+        }
+        if ($product->get_type() === 'variation') {
+          $selected_attributes[] = $options;
         }
       }
       if ($selected_attributes) {
