@@ -35,6 +35,7 @@ class Admin {
     register_setting('shop-analytics-settings', 'shop_analytics_market_default');
     register_setting('shop-analytics-settings', 'shop_analytics_datalayer_logging');
     register_setting('shop-analytics-settings', 'shop_analytics_brand_attribute');
+    register_setting('shop-analytics-settings', 'shop_analytics_product_id');
     register_setting('shop-analytics-settings', 'shop_analytics_category_attribute');
 
     // Adds a new custom product name field.
