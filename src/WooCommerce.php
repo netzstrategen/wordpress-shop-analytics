@@ -75,7 +75,6 @@ class WooCommerce {
     }
 
     $product_id_field = get_option('shop_analytics_product_id');
-
     $product_sku = $product->get_sku();
     if ($product_id_field === 'sku_id' && $product_sku) {
       $product_track_id = $product_sku;
