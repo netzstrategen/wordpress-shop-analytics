@@ -144,7 +144,7 @@ if ($product_attributes) {
         <td>
           <select id="shop-analytics-product-id" name="shop_analytics_product_id">
             <?php foreach (['post_id', 'sku_id'] as $field): ?>
-              <option value="<?= $field ?>" <?php selected($field, $shop_analytics_product_id); ?>>
+              <option value="<?= $field ?>" <?php selected($field, $product_id); ?>>
                 <?= $field ?>
               </option>
             <?php endforeach; ?>
