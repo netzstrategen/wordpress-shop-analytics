@@ -24,7 +24,7 @@ document.shopAnalytics = {
       var product_data = $this.data();
       var product = {
         name: product_data.name,
-        id: String(product_data.sku),
+        id: String(product_data.id),
         price: product_data.price,
         category: product_data.category,
       };
