@@ -74,9 +74,15 @@ class WooCommerce {
       $product_name = str_replace(["'", '"'], '', wp_strip_all_tags($product->get_name(), TRUE));
     }
 
+    $product_id_field = get_option('shop_analytics_product_id');
+    $product_sku = $product->get_sku();
+    if ($product_id_field === 'sku_id' && $product_sku) {
+      $product_track_id = $product_sku;
+    }
+
     $details = [
-      'id' => $product_id,
-      'sku' => $product->get_sku() ?: $product_id,
+      'id' => $product_track_id ?? $product_id,
+      'sku' => $product_sku ?: $product_id,
       'name' => $product_name,
       'type' => $product->get_type(),
       'price' => number_format($product->get_price() ?: 0, 2, '.', ''),

@@ -151,7 +151,7 @@ class Plugin {
         foreach ($product_details as $key => $detail) {
           $attributes['product-' . str_replace('_', '-', $key)] = $detail;
         }
-        foreach (WooCommerce::getProductAttributes(wc_get_product($product_details['id'])) as $attribute) {
+        foreach (WooCommerce::getProductAttributes(wc_get_product(get_the_ID())) as $attribute) {
           $attributes['product-' . $attribute['key']] = $attribute['value'] ?: '';
         }
       }

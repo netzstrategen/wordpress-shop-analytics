@@ -5,6 +5,7 @@ namespace Netzstrategen\ShopAnalytics;
 global $wp_roles;
 
 $product_attributes = function_exists('wc_get_attribute_taxonomies') ? wc_get_attribute_taxonomies() : '';
+$product_id = get_option('shop_analytics_product_id', 'post_id');
 if ($product_attributes) {
   $brand_attribute = get_option('shop_analytics_brand_attribute', 'product_brand');
   $category_attribute = get_option('shop_analytics_category_attribute', 'product_cat');
@@ -134,6 +135,20 @@ if ($product_attributes) {
             <?php checked(get_option('shop_analytics_datalayer_logging')); ?>
             <?php disabled(Plugin::isWooCommerceActive(), FALSE); ?>
           >
+        </td>
+      </tr>
+      <tr class="form-field">
+        <th scope="row">
+          <label for="shop-analytics-product-id"><?= __('Field to use as product ID', Plugin::L10N) ?></label>
+        </th>
+        <td>
+          <select id="shop-analytics-product-id" name="shop_analytics_product_id">
+            <?php foreach (['post_id', 'sku_id'] as $field): ?>
+              <option value="<?= $field ?>" <?php selected($field, $product_id); ?>>
+                <?= $field ?>
+              </option>
+            <?php endforeach; ?>
+          </select>
         </td>
       </tr>
       <?php if ($product_attributes): ?>
