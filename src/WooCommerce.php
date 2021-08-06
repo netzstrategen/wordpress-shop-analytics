@@ -81,8 +81,9 @@ class WooCommerce {
     }
 
     $details = [
-      'id' => $product_track_id ?? $product_id,
+      'id' => $product_id,
       'sku' => $product_sku ?: $product_id,
+      'ecommerce_track_id' => $product_track_id ?? $product_id,
       'name' => $product_name,
       'type' => $product->get_type(),
       'price' => number_format($product->get_price() ?: 0, 2, '.', ''),
