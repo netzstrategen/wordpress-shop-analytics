@@ -17,7 +17,7 @@ document.shopAnalytics = {
    *   Array of objects containing products details.
    */
   getProductsData: function($products) {
-    var products_data = [];
+    var products_data = {};
 
     $products.each(function () {
       var $this = jQuery(this);
@@ -44,10 +44,12 @@ document.shopAnalytics = {
       if (product_data.list) {
         product.list = product_data.list;
       }
-      products_data.push(product);
+      // It can happen that the hidden markup is cloned in the DOM (like in a
+      // slider), we only want it tracked once.
+      products_data[product_data.list + ':' + product_data.position + ':' + product.id] = product;
     });
 
-    return products_data;
+    return Object.values(products_data);
   },
 
   getProductsListType: function($product) {
@@ -266,7 +268,14 @@ document.shopAnalytics = {
 
     // Observes the list of products to detect dinamically loaded products.
     if (!products_list_observer) {
-      products_list_observer = observeProductsList();
+      // This uses a timeout for the observer to be triggered later, for example
+      // after a slider has been initialised to avoid triggering it for when the
+      // script creates the slide clones. Though not ideal, this is preferable
+      // to a separate http request for another script file with just this
+      // functionality.
+      window.setTimeout(function() {
+        products_list_observer = observeProductsList();
+      }, 500);
     }
   }
 
