@@ -47,7 +47,7 @@ document.shopAnalytics = {
       products_data.push(product);
     });
 
-    return products_data;
+    return Object.values(products_data);
   },
 
   getProductsListType: function($product) {
@@ -266,7 +266,13 @@ document.shopAnalytics = {
 
     // Observes the list of products to detect dinamically loaded products.
     if (!products_list_observer) {
-      products_list_observer = observeProductsList();
+      // Wait until other scripts have initialized before starting to watch for
+      // listening to DOM mutations, so that product impressions are not
+      // triggered multiple times during regular DOM initialization. A timeout
+      // is preferable to a separate HTTP request.
+      window.setTimeout(function() {
+        products_list_observer = observeProductsList();
+      }, 500);
     }
   }
 

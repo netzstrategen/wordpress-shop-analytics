@@ -59,6 +59,12 @@ class Plugin {
       add_action('woocommerce_single_product_summary', __NAMESPACE__ . '\WooCommerce::addSingleProductDetailsHtmlDataAttr');
       add_action('woocommerce_thankyou', __NAMESPACE__ . '\WooCommerce::addOrderDetailsHtmlDataAttr');
 
+      // Elementor equivalent: Add a hidden HTML div element with product details as data attributes.
+      if (is_plugin_active('ultimate-elementor/ultimate-elementor.php')) {
+        add_action('uael_woo_products_title_before', __NAMESPACE__ . '\WooCommerce::addImpressionsProductDetailsHtmlDataAttr');
+        add_action('woocommerce_before_single_product', __NAMESPACE__ . '\WooCommerce::addSingleProductDetailsHtmlDataAttr');
+      }
+
       // Adds hidden fields with data related to product variations with a custom product name set.
       add_action('woocommerce_after_single_variation', __NAMESPACE__ . '\WooCommerce::woocommerce_after_single_variation');
 
