@@ -266,11 +266,10 @@ document.shopAnalytics = {
 
     // Observes the list of products to detect dinamically loaded products.
     if (!products_list_observer) {
-      // This uses a timeout for the observer to be triggered later, for example
-      // after a slider has been initialised to avoid triggering it for when the
-      // script creates the slide clones. Though not ideal, this is preferable
-      // to a separate http request for another script file with just this
-      // functionality.
+      // Wait until other scripts have initialized before starting to watch for
+      // listening to DOM mutations, so that product impressions are not
+      // triggered multiple times during regular DOM initialization. A timeout
+      // is preferable to a separate HTTP request.
       window.setTimeout(function() {
         products_list_observer = observeProductsList();
       }, 500);
