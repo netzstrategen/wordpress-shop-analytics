@@ -17,7 +17,7 @@ document.shopAnalytics = {
    *   Array of objects containing products details.
    */
   getProductsData: function($products) {
-    var products_data = {};
+    var products_data = [];
 
     $products.each(function () {
       var $this = jQuery(this);
@@ -44,9 +44,7 @@ document.shopAnalytics = {
       if (product_data.list) {
         product.list = product_data.list;
       }
-      // It can happen that the hidden markup is cloned in the DOM (like in a
-      // slider), we only want it tracked once.
-      products_data[product_data.list + ':' + product_data.position + ':' + product.id] = product;
+      products_data.push(product);
     });
 
     return Object.values(products_data);
