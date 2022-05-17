@@ -187,7 +187,7 @@ class Plugin {
   public static function getCurrentUserRole() {
     // Probably you should check against all of the users roles?
     $user = wp_get_current_user();
-    return $user->roles ? $user->roles[0] : 'visitor';
+    return $user->roles ? array_values($user->roles)[0] : 'visitor';
   }
 
   /**
