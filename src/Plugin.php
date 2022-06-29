@@ -152,7 +152,7 @@ class Plugin {
         // Adds product attribute page attribute.
         $attributes['product-attribute'] = $wp_query->queried_object->name;
       }
-      elseif (is_product() && $product_details = WooCommerce::getProductDetails(get_the_ID(), FALSE)) {
+      elseif (is_product() && ($product_id = get_the_ID()) && $product_details = WooCommerce::getProductDetails($product_id, FALSE)) {
         // Adds product details and attributes.
         foreach ($product_details as $key => $detail) {
           $attributes['product-' . str_replace('_', '-', $key)] = $detail;
