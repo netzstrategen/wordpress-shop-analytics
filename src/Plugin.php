@@ -87,8 +87,9 @@ class Plugin {
     if (!$gtm_id = get_option('shop_analytics_gtm_id')) {
       return;
     }
+    $embed_url_domain = get_option('shop_analytics_url_domain') ?: 'www.googletagmanager.com';
     ?>
-<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','<?= $gtm_id ?>');</script>
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://<?= $embed_url_domain ?>/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','<?= $gtm_id ?>');</script>
     <?php
   }
 
@@ -99,8 +100,9 @@ class Plugin {
     if (!$gtm_id = get_option('shop_analytics_gtm_id')) {
       return;
     }
+    $embed_url_domain = get_option('shop_analytics_url_domain') ?: 'www.googletagmanager.com';
     ?>
-<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=<?= $gtm_id ?>" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+<noscript><iframe src="https://<?= $embed_url_domain ?>/ns.html?id=<?= $gtm_id ?>" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <?php
   }
 
