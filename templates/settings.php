@@ -213,7 +213,6 @@ if ($product_attributes) {
             type="text"
             size="50"
             value="<?= esc_attr(get_option('shop_analytics_url_domain')) ?>"
-            maxlength="40"
             style="width:200px;"
           >
         </td>
