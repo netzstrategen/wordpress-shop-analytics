@@ -208,11 +208,11 @@ if ($product_attributes) {
         </th>
         <td>
           <input
-            id="shop-analytics-url-domain"
-            name="shop_analytics_url_domain"
+            id="shop-analytics-gtm-domain"
+            name="shop_analytics_gtm_domain"
             type="text"
             size="50"
-            value="<?= esc_attr(get_option('shop_analytics_url_domain')) ?>"
+            value="<?= esc_attr(get_option('shop_analytics_gtm_domain')) ?>"
             style="width:200px;"
           >
         </td>
