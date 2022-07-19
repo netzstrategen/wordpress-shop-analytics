@@ -203,7 +203,7 @@ if ($product_attributes) {
       <?php endif; ?>
       <tr class="form-field">
         <th scope="row">
-          <label for="shop-analytics-url-domain"><?= __('Script embed URL domain', Plugin::L10N) ?></label>
+          <label for="shop-analytics-url-domain">Google Tag Manager Domain</label>
           <p class="hint"><?= __('Default: www.googletagmanager.com', Plugin::L10N) ?></p>
         </th>
         <td>
