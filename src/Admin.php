@@ -37,6 +37,7 @@ class Admin {
     register_setting('shop-analytics-settings', 'shop_analytics_brand_attribute');
     register_setting('shop-analytics-settings', 'shop_analytics_product_id');
     register_setting('shop-analytics-settings', 'shop_analytics_category_attribute');
+    register_setting('shop-analytics-settings', 'shop_analytics_gtm_domain');
 
     // Adds a new custom product name field.
     add_action('woocommerce_product_options_sku', __NAMESPACE__ . '\WooCommerce::woocommerce_product_options_sku');

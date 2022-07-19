@@ -201,6 +201,22 @@ if ($product_attributes) {
           </td>
         </tr>
       <?php endif; ?>
+      <tr class="form-field">
+        <th scope="row">
+          <label for="shop-analytics-gtm-domain">Google Tag Manager Domain</label>
+          <p class="hint"><?= __('Default: www.googletagmanager.com', Plugin::L10N) ?></p>
+        </th>
+        <td>
+          <input
+            id="shop-analytics-gtm-domain"
+            name="shop_analytics_gtm_domain"
+            type="text"
+            size="50"
+            value="<?= esc_attr(get_option('shop_analytics_gtm_domain')) ?>"
+            style="width:200px;"
+          >
+        </td>
+      </tr>
     </table>
     <?php submit_button(); ?>
   </form>
