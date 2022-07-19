@@ -100,7 +100,7 @@ class Plugin {
     if (!$gtm_id = get_option('shop_analytics_gtm_id')) {
       return;
     }
-    $embed_url_domain = get_option('shop_analytics_url_domain') ?: 'www.googletagmanager.com';
+    $embed_url_domain = get_option('shop_analytics_gtm_domain') ?: 'www.googletagmanager.com';
     ?>
 <noscript><iframe src="https://<?= $embed_url_domain ?>/ns.html?id=<?= $gtm_id ?>" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <?php
