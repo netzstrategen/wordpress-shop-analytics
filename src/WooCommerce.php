@@ -56,6 +56,9 @@ class WooCommerce {
   public static function getProductDetails($product_id = 0, $primary_category = TRUE) {
     $product_id = $product_id ?: get_the_ID();
     $product = wc_get_product($product_id);
+    if (!$product || is_wp_error($product)) {
+      return [];
+    }
     $parent_id = $product->get_parent_id();
 
     if ($primary_category) {
