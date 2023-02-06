@@ -190,11 +190,14 @@ document.shopAnalytics = {
     .on('click', shopAnalytics.event.click.register, onRegisterFormSubmit)
     .on('click', shopAnalytics.event.click.registerOnCheckout, onRegisterOnCheckoutSubmit)
     .on('click', '.products .product a', onProductClick)
-    .on('click', '.single_add_to_cart_button', onProductAddToCart)
     .on('click', '.remove_from_cart_button, .woocommerce-cart-form .product-remove > a, .cart_item td.product-remove .remove', onRemoveSingleProduct)
     .on('click', 'th.product-remove .remove', onEmptyCart)
     .on('click', 'nav a', onNavItemClick)
   ;
+
+  if (shop_analytics_settings.track_add_to_cart_button !== 'off') {
+    $(document).on('click', '.single_add_to_cart_button', onProductAddToCart);
+  }
 
   $(document.body).on('adding_to_cart', onProductAddToCart);
 

@@ -94,6 +94,40 @@ if ($product_attributes) {
       </tr>
       <tr class="form-field">
         <th scope="row">
+          <label for="shop-analytics-track-ecommerce"><?= __('Disable "add to cart" button tracking', Plugin::L10N) ?></label>
+        </th>
+        <td>
+          <input
+            id="shop_analytics-disable-track-add-to-cart-button"
+            name="shop_analytics_disable_track_add_to_cart_button"
+            type="checkbox"
+            value="1"
+            <?php checked(Plugin::isAddToCartButtonTrackingDisabled()); ?>
+            <?php disabled(Plugin::isWooCommerceActive(), FALSE); ?>
+          >
+          <p>
+            <?php
+              echo str_replace(
+                '\n',
+                '</br>',
+                __('Tracking of the "Add to Cart" button can be disabled to prevent\nduplicate "EECaddToCart" events being sent to Google Data Layer\nwhen Ajax add to cart is enabled.', Plugin::L10N)
+              );
+            ?>
+          </p>
+          <p>
+            <?php
+              echo sprintf(
+                __('AJAX add to cart buttons on archives is currently %s in %sWooCommerce settings%s.', Plugin::L10N),
+                get_option('woocommerce_enable_ajax_add_to_cart') ? __('enabled', Plugin::L10N) : __('disabled', Plugin::L10N),
+                '<a href="' . get_admin_url() . '/admin.php?page=wc-settings&tab=products">',
+                '</a>'
+              );
+            ?>
+          </p>
+        </td>
+      </tr>
+      <tr class="form-field">
+        <th scope="row">
           <label for="shop-analytics-google-optimize"><?= __('Enable Page Hiding for Google Optimize', Plugin::L10N) ?></label>
         </th>
         <td>
