@@ -262,6 +262,15 @@ class Plugin {
   }
 
   /**
+   * Returns TRUE if WooCommerce plugin is active and Ajax add to cart enabled.
+   *
+   * @return bool
+   */
+  public static function isAddToCartButtonTrackingDisabled() {
+    return static::isWooCommerceActive() && get_option('shop_analytics_disable_track_add_to_cart_button');
+  }
+
+  /**
    * Returns the status of the Google Optimize feature.
    *
    * @return bool
@@ -315,6 +324,7 @@ class Plugin {
     wp_localize_script($handle . '_common', Plugin::PREFIX . '_settings', [
       'tc_enabled' => (bool) get_option('shop_analytics_tc_enabled'),
       'datalayer_console_log' => (int) get_option('shop_analytics_datalayer_logging') ? 'on' : 'off',
+      'track_add_to_cart_button' => (bool) get_option('shop_analytics_disable_track_add_to_cart_button') ? 'off' : 'on',
     ]);
     wp_enqueue_script($handle . '_cart_checkout', "$scripts/cart-checkout.js", [$handle . '_common'], FALSE, TRUE);
 
