@@ -477,6 +477,8 @@ class WooCommerce {
       $product = $order_item->get_product();
       $html .= str_replace('></div>', ' data-quantity="' . $order_item->get_quantity() . '"></div>', static::getProductDetailsHtmlDataAttr($product));
     }
+
+    $html .= '<div id="shop-analytics-order-email" style="display:none;height:0;">' . $order_data['billing']['email'] . '</div>';
     $html .= '</div>';
 
     return $html;
