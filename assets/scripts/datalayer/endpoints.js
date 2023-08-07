@@ -37,17 +37,13 @@
     var event_data = {
       event: 'EECpurchase',
       ecommerce: {
-        purchase: {
-          actionField: {
-            id: orderId,
-            revenue: String(orderData.revenue).replace(/,/g, ''),
-            tax: String(orderData.tax).replace(/,/g, ''),
-            shipping: String(orderData.shipping).replace(/,/g, ''),
-            ordercount: orderCount,
-            currency: orderData.currency,
-          },
-          products: shopAnalytics.getProductsData($products)
-        }
+        transaction_id: orderId,
+        value: String(orderData.revenue).replace(/,/g, ''),
+        tax: String(orderData.tax).replace(/,/g, ''),
+        shipping: String(orderData.shipping).replace(/,/g, ''),
+        order_count: orderCount,
+        currency: orderData.currency,
+        items: shopAnalytics.getProductsData($products)
       }
     };
 
