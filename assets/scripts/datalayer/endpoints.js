@@ -35,7 +35,7 @@
     }
     var $products = $order.find('.shop-analytics-product-details');
     var event_data = {
-      event: 'EECpurchase',
+      event: 'purchase',
       ecommerce: {
         transaction_id: orderId,
         value: String(orderData.revenue).replace(/,/g, ''),
