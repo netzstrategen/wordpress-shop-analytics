@@ -48,7 +48,7 @@
     };
 
     if (orderData.coupon) {
-      event_data.ecommerce.purchase.actionField.coupon = orderData.coupon;
+      event_data.ecommerce.coupon = orderData.coupon;
     }
 
     shopAnalytics.postToDataLayer(event_data);
