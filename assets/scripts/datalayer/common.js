@@ -23,17 +23,17 @@ document.shopAnalytics = {
       var $this = jQuery(this);
       var product_data = $this.data();
       var product = {
-        name: product_data.name,
-        id: String(product_data.ecommerce_track_id),
+        item_name: product_data.name,
+        item_id: String(product_data.ecommerce_track_id),
         price: product_data.price,
-        category: product_data.category,
+        item_category: product_data.category,
       };
 
       if (product_data.brand) {
-        product.brand = product_data.brand;
+        product.item_brand = product_data.brand;
       }
       if (product_data.variant) {
-        product.variant = product_data.variant;
+        product.item_variant = product_data.variant;
       }
       if (product_data.quantity) {
         product.quantity = parseInt(product_data.quantity);
@@ -42,7 +42,7 @@ document.shopAnalytics = {
         product.position = product_data.position;
       }
       if (product_data.list) {
-        product.list = product_data.list;
+        product.item_list_name = product_data.list;
       }
       products_data.push(product);
     });
@@ -144,14 +144,9 @@ document.shopAnalytics = {
   },
   checkout: {
     dataInit: {
-      event: 'EECcheckout',
+      event: 'begin_checkout',
       ecommerce: {
-        checkout: {
-          actionField: {
-            step: 0,
-          },
-          products: []
-        }
+        items: []
       }
     },
     elements: {
@@ -259,10 +254,10 @@ document.shopAnalytics = {
     }
 
     var event_data = {
-      event: 'EECproductImpression',
+      event: 'view_item_list',
       ecommerce: {
-        currencyCode: $products.first().data('currency'),
-        impressions: shopAnalytics.getProductsData($products)
+        currency: $products.first().data('currency'),
+        items: shopAnalytics.getProductsData($products)
       }
     };
     shopAnalytics.postToDataLayer(event_data);
@@ -312,14 +307,10 @@ document.shopAnalytics = {
     var $products = $(this).closest('.product').find('.shop-analytics-product-details');
     var list_type = $products.first().data('list');
     var event_data = {
-      event: 'EECproductClick',
+      event: 'select_item',
       ecommerce: {
-        click: {
-          actionField: {
-            list: list_type
-          },
-          products: shopAnalytics.getProductsData($products)
-        }
+        list: list_type,
+        items: shopAnalytics.getProductsData($products)
       }
     };
     // Save the type of list where the clicked product is displayed.
@@ -370,22 +361,20 @@ document.shopAnalytics = {
     var variation_id;
     var custom_name;
     var event_data = {
-      event: 'EECaddToCart',
+      event: 'add_to_cart',
       ecommerce: {
-        currencyCode: $products.first().data('currency'),
-        add: {
-          products: shopAnalytics.getProductsData($products)
-        }
+        currency: $products.first().data('currency'),
+        items: shopAnalytics.getProductsData($products)
       }
     };
     variation = shopAnalytics.getProductVariationAttributes('.variations_form option:selected');
     if (variation) {
-      event_data.ecommerce.add.products[0].variant = variation;
+      event_data.ecommerce.items[0].item_variant = variation;
       variation_id = shopAnalytics.getVariationId();
-      event_data.ecommerce.add.products[0].id = variation_id;
+      event_data.ecommerce.items[0].item_id = variation_id;
       // Override product name with custom name, if it exists.
       if (custom_name = shopAnalytics.getVariationName(variation_id)) {
-        event_data.ecommerce.add.products[0].name = custom_name;
+        event_data.ecommerce.items[0].item_name = custom_name;
       }
     }
     shopAnalytics.postToDataLayer(event_data);
@@ -480,11 +469,9 @@ document.shopAnalytics = {
     }
     var productsData = shopAnalytics.getProductsData($products);
     var event_data = {
-      event: 'EECremoveFromCart',
+      event: 'remove_from_cart',
       ecommerce: {
-        remove: {
-          products: productsData
-        }
+        items: productsData
       }
     };
     localStorage.setItem('productsInCartData', JSON.stringify(productsData));

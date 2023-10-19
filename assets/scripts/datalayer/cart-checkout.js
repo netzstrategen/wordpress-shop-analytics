@@ -23,8 +23,8 @@
       return;
     }
     var event_data = shopAnalytics.checkout.dataInit;
-    event_data.ecommerce.checkout.actionField.step = 1;
-    event_data.ecommerce.checkout.products = shopAnalytics.getProductsData($productsInCart);
+    event_data.ecommerce.step = 1;
+    event_data.ecommerce.items = shopAnalytics.getProductsData($productsInCart);
     localStorage.setItem('productsInCartData', JSON.stringify(shopAnalytics.getProductsData($productsInCart)));
 
     shopAnalytics.postToDataLayer(event_data);
@@ -146,11 +146,11 @@
     }
     var event_data = shopAnalytics.checkout.dataInit;
 
-    event_data.ecommerce.checkout.actionField.step = step;
+    event_data.ecommerce.step = step;
     if (optionLabel) {
-      event_data.ecommerce.checkout.actionField.option = optionLabel.trim();
+      event_data.ecommerce.option = optionLabel.trim();
     }
-    event_data.ecommerce.checkout.products = productsData;
+    event_data.ecommerce.items = productsData;
     shopAnalytics.postToDataLayer(event_data);
   }
 

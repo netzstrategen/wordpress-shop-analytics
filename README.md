@@ -116,36 +116,36 @@ E.g.
 Products impressions (products listing page, partial data)
 ```json
 {
-  "event": "EECproductImpression",
+  "event": "view_item_list",
   "ecommerce": {
-    "currencyCode": "EUR",
-    "impressions": [
+    "currency": "EUR",
+    "items": [
       {
-        "name": "4Seasons Outdoor Accor Diningsessel",
-        "id": "213520-M",
+        "item_name": "4Seasons Outdoor Accor Diningsessel",
+        "item_id": "213520-M",
         "price": "294.00",
-        "category": "Gartenmöbel/Basics/Gartenstühle",
-        "brand": "4Seasons Outdoor",
+        "item_category": "Gartenmöbel/Basics/Gartenstühle",
+        "item_brand": "4Seasons Outdoor",
         "position": 1,
-        "list": "Product Category"
+        "item_list_name": "Product Category"
       },
       {
-        "name": "4Seasons Outdoor Athena Diningsessel",
-        "id": "91013",
+        "item_name": "4Seasons Outdoor Athena Diningsessel",
+        "item_id": "91013",
         "price": "249.00",
-        "category": "Gartenmöbel/Basics/Gartenstühle",
-        "brand": "4Seasons Outdoor",
+        "item_category": "Gartenmöbel/Basics/Gartenstühle",
+        "item_brand": "4Seasons Outdoor",
         "position": 2,
-        "list": "Product Category"
+        "item_list_name": "Product Category"
       },
       {
-        "name": "Cane-line Diamond GartenstuhlTextilgewebe",
-        "id": "8401TXW-M",
+        "item_name": "Cane-line Diamond GartenstuhlTextilgewebe",
+        "item_id": "8401TXW-M",
         "price": "484.00",
-        "category": "Gartenmöbel/Basics/Gartenstühle",
-        "brand": "Cane-line",
+        "item_category": "Gartenmöbel/Basics/Gartenstühle",
+        "item_brand": "Cane-line",
         "position": 3,
-        "list": "Product Category"
+        "item_list_name": "Product Category"
       },
       {
 
@@ -158,20 +158,18 @@ Products impressions (products listing page, partial data)
 Single product view
 ```json
 {
-  "event": "EECproductDetailView",
+  "event": "view_item",
   "ecommerce": {
-    "detail": {
-      "actionField": { "list": "Product detail" },
-      "products": [
-        {
-          "name": "4Seasons Outdoor Accor Diningsessel",
-          "id": "213520-M",
-          "price": "294.00",
-          "category": "Gartenmöbel/Basics/Gartenstühle",
-          "brand": "4Seasons Outdoor"
-        }
-      ]
-    }
+    "items": [
+      {
+        "item_name": "4Seasons Outdoor Accor Diningsessel",
+        "item_id": "213520-M",
+        "price": "294.00",
+        "item_category": "Gartenmöbel/Basics/Gartenstühle",
+        "item_brand": "4Seasons Outdoor",
+        "item_list_name": "Product detail"
+      }
+    ]
   },
   "gtm.uniqueEventId": 12
 }
@@ -180,22 +178,20 @@ Single product view
 Add product(s) to cart
 ```json
 {
-  "event": "EECaddToCart",
+  "event": "add_to_cart",
   "ecommerce": {
-    "currencyCode": "EUR",
-    "add": {
-      "products": [
-        {
-          "name": "4Seasons Outdoor Accor Diningsessel",
-          "id": "280274",
-          "price": "294.00",
-          "category": "Gartenmöbel/Basics/Gartenstühle",
-          "brand": "4Seasons Outdoor",
-          "variant": "Rope anthrazit",
-          "quantity": 1
-        }
-      ]
-    }
+    "currency": "EUR",
+    "items": [
+      {
+        "item_name": "4Seasons Outdoor Accor Diningsessel",
+        "item_id": "280274",
+        "price": "294.00",
+        "item_category": "Gartenmöbel/Basics/Gartenstühle",
+        "item_brand": "4Seasons Outdoor",
+        "item_variant": "Rope anthrazit",
+        "quantity": 1
+      }
+    ]
   },
   "gtm.uniqueEventId": 48
 }

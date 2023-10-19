@@ -35,24 +35,20 @@
     }
     var $products = $order.find('.shop-analytics-product-details');
     var event_data = {
-      event: 'EECpurchase',
+      event: 'purchase',
       ecommerce: {
-        purchase: {
-          actionField: {
-            id: orderId,
-            revenue: String(orderData.revenue).replace(/,/g, ''),
-            tax: String(orderData.tax).replace(/,/g, ''),
-            shipping: String(orderData.shipping).replace(/,/g, ''),
-            ordercount: orderCount,
-            currency: orderData.currency,
-          },
-          products: shopAnalytics.getProductsData($products)
-        }
+        transaction_id: orderId,
+        value: String(orderData.revenue).replace(/,/g, ''),
+        tax: String(orderData.tax).replace(/,/g, ''),
+        shipping: String(orderData.shipping).replace(/,/g, ''),
+        order_count: orderCount,
+        currency: orderData.currency,
+        items: shopAnalytics.getProductsData($products)
       }
     };
 
     if (orderData.coupon) {
-      event_data.ecommerce.purchase.actionField.coupon = orderData.coupon;
+      event_data.ecommerce.coupon = orderData.coupon;
     }
 
     shopAnalytics.postToDataLayer(event_data);

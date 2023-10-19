@@ -22,22 +22,18 @@
     // Get the list type where this product was displayed on when clicked.
     var list_type = localStorage.getItem('shop-analytics-list-type');
     var event_data = {
-      event: 'EECproductDetailView',
+      event: 'view_item',
       ecommerce: {
-        detail: {
-          actionField: {
-            list: 'Product detail'
-          },
-          products: shopAnalytics.getProductsData($products)
-        }
+        list: 'Product detail',
+        items: shopAnalytics.getProductsData($products)
       }
     };
     if (list_type) {
-      event_data.ecommerce.detail.actionField.list = list_type;
+      event_data.ecommerce.items[0].item_list_name = list_type;
       localStorage.removeItem('shop-analytics-list-type');
     }
     if (variation = shopAnalytics.getProductVariationAttributes('.variations_form option:selected')) {
-      event_data.ecommerce.detail.products[0].variant = variation;
+      event_data.ecommerce.items[0].item_variant = variation;
     }
     shopAnalytics.postToDataLayer(event_data);
   }
