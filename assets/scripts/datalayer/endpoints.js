@@ -23,7 +23,7 @@
     var orderData = $order.data();
     var orderId = String(orderData.id);
     // Ensure we are not tracking the same order again.
-    var trackedOrders = JSON.parse(localStorage.getItem('shop-analytics-tracked-orders')),
+    var trackedOrders = JSON.parse(localStorage.getItem('shop-analytics-tracked-orders')) ?? [],
         // Check LocalStorage for previous order_count parameter, else default value from php.
         orderCount = localStorage.getItem('shop-analytics-order-count') ? (JSON.parse(localStorage.getItem('shop-analytics-order-count')) + 1) : orderData.order_count;
     if (trackedOrders && trackedOrders.includes(orderId)) {

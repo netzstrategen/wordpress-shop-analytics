@@ -16,7 +16,7 @@ gulp.task('eslint', function() {
     '!node_modules/**',
     '!gulpfile.js'
   ])
-    .pipe(eslint())
+    .pipe(eslint({ parserOptions: { ecmaVersion: 2020 }}))
     .pipe(eslint.format());
   return task;
 });
