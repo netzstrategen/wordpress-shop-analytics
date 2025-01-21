@@ -391,7 +391,11 @@ class WooCommerce {
    * @return string
    *   hidden HTML div element with product details as data attributes.
    */
-  public static function getProductDetailsHtmlDataAttr(\WC_Product $product, $is_detail_view = FALSE) {
+  public static function getProductDetailsHtmlDataAttr(?\WC_Product $product, $is_detail_view = FALSE) {
+    if(!$product) {
+      return '';
+    }
+
     $product_id = $product->get_id();
     $product_details = static::getProductDetails($product_id);
 
