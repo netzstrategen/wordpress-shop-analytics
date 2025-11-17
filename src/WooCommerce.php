@@ -359,7 +359,7 @@ class WooCommerce {
     $product_details['item_key'] = $cart_item_key;
     if ('variation' === $product->get_type()) {
       $attributes = wc_get_product($product)->get_variation_attributes();
-      $selected_attributes = array_values($attributes);
+      $selected_attributes = array_map('trim', array_values($attributes));
       if ($selected_attributes) {
         $product_details['variant'] = strtolower(implode('-', $selected_attributes));
       }
@@ -430,6 +430,7 @@ class WooCommerce {
         }
       }
       if ($selected_attributes) {
+        $selected_attributes = array_map('trim', $selected_attributes);
         $product_details['variant'] = strtolower(implode('-', $selected_attributes));
       }
     }
