@@ -184,12 +184,18 @@ class Plugin {
   }
 
   /**
-   * Returns the first role of the current user. 'Visitor' otherwise.
+   * Returns the most relevant role of the current user, or 'visitor'.
+   *
+   * The raw role is the first entry in the user's roles array. Plugins can
+   * override this via the shop_analytics/current_user_role filter to apply
+   * custom priority or mapping logic.
+   *
+   * @return string
    */
   public static function getCurrentUserRole() {
-    // Probably you should check against all of the users roles?
     $user = wp_get_current_user();
-    return $user->roles ? array_values($user->roles)[0] : 'visitor';
+    $role = $user->roles ? array_values($user->roles)[0] : 'visitor';
+    return (string) apply_filters('shop_analytics/current_user_role', $role, $user);
   }
 
   /**
