@@ -23,11 +23,14 @@
   var seen = {
     entered: false,
     items: null,
-    shippingTier: null,
+    shippingId: null,
     paymentType: null
   };
 
   wp.data.subscribe(onStoreChange);
+  // subscribe() does not call the listener on registration, so a store that
+  // already resolved before this script ran would never be seen.
+  onStoreChange();
 
   /**
    * Converts a Store API amount, which is an integer in the minor unit.
@@ -49,7 +52,9 @@
       var built = {
         item_id: String(extra.item_id || item.id),
         item_name: extra.item_name || item.name,
-        price: typeof extra.price === 'number' ? extra.price : amount(item.prices.price, item.prices.currency_minor_unit),
+        // The Store API price is the one this cart line actually costs.
+        // Composites and bundles change it, so the catalog price would lie.
+        price: amount(item.prices.price, item.prices.currency_minor_unit),
         quantity: item.quantity,
         index: position + 1
       };
@@ -93,18 +98,27 @@
   }
 
   /**
-   * The shipping rate the customer has selected, if any.
+   * The shipping the customer has selected, across every package.
+   *
+   * Identified by rate id per package, not by name: a cart can ship in more
+   * than one package, and two rates can carry the same label, so a name alone
+   * would hide a real change.
    */
   function selectedShipping(cart) {
-    var selected = null;
+    var ids = [];
+    var names = [];
     (cart.shippingRates || []).forEach(function (packageRates) {
       (packageRates.shipping_rates || []).forEach(function (rate) {
         if (rate.selected) {
-          selected = rate.name;
+          ids.push(packageRates.package_id + ':' + rate.rate_id);
+          names.push(rate.name);
         }
       });
     });
-    return selected;
+    if (!ids.length) {
+      return null;
+    }
+    return {id: ids.join('|'), tier: names.join(', ')};
   }
 
   /**
@@ -195,11 +209,11 @@
 
     // seen starts empty, so the method the checkout resolves first counts as
     // a selection and the funnel gets its step even if nothing is switched.
-    var tier = selectedShipping(cart);
-    if (tier && tier !== seen.shippingTier) {
-      seen.shippingTier = tier;
+    var shippingChoice = selectedShipping(cart);
+    if (shippingChoice && shippingChoice.id !== seen.shippingId) {
+      seen.shippingId = shippingChoice.id;
       var shipping = cartEcommerce(cart);
-      shipping.shipping_tier = tier;
+      shipping.shipping_tier = shippingChoice.tier;
       push('add_shipping_info', shipping);
     }
 

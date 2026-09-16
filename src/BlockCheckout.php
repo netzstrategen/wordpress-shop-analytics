@@ -80,11 +80,6 @@ class BlockCheckout {
       'item_category' => $string,
       'item_brand' => $string,
       'item_variant' => $string,
-      'price' => [
-        'description' => __('Unit price as a number, for Google Analytics.', Plugin::L10N),
-        'type' => ['number', 'null'],
-        'readonly' => TRUE,
-      ],
     ];
   }
 
@@ -122,8 +117,12 @@ class BlockCheckout {
     if (!function_exists('has_block') || !function_exists('is_cart')) {
       return FALSE;
     }
-    if (is_checkout() && !is_checkout_pay_page()) {
-      return has_block('woocommerce/checkout', get_post());
+    // order-received and order-pay are endpoints of the checkout page, so
+    // is_checkout() is TRUE on them too. The blocks do not render there, and
+    // a cart left in the session would push a checkout event over the
+    // thank-you page.
+    if (is_checkout()) {
+      return !is_wc_endpoint_url() && has_block('woocommerce/checkout', get_post());
     }
     if (is_cart()) {
       return has_block('woocommerce/cart', get_post());

@@ -129,16 +129,26 @@ class WooCommerce {
    * @return array
    */
   public static function getGa4ItemData(\WC_Product $product) {
-    $details = static::getProductDetails($product->get_id());
-    if (!$details) {
-      return [];
+    // The Store API rebuilds every cart item on every cart and checkout
+    // request, so without this getProductDetails() would run its taxonomy
+    // lookups once per line, per request.
+    static $cache = [];
+    $id = $product->get_id();
+    if (isset($cache[$id])) {
+      return $cache[$id];
     }
 
+    $details = static::getProductDetails($id);
+    if (!$details) {
+      return $cache[$id] = [];
+    }
+
+    // No price here: the catalog price is not the price of this cart line.
+    // Composites, bundles and dynamic pricing change it, so the script reads
+    // the contextual one the Store API already sends.
     $item = [
       'item_id' => (string) $details['ecommerce_track_id'],
-      'item_name' => $details['name'],
-      // Numbers, not strings: GA4 discards a price it cannot read as numeric.
-      'price' => (float) $details['price'],
+      'item_name' => static::getGa4ItemName($product, $details),
     ];
     if (!empty($details['category'])) {
       $item['item_category'] = $details['category'];
@@ -149,7 +159,33 @@ class WooCommerce {
     if ($variant = static::getGa4ItemVariant($product)) {
       $item['item_variant'] = $variant;
     }
-    return $item;
+    return $cache[$id] = $item;
+  }
+
+  /**
+   * The item name, with a variation reported under its parent product's name.
+   *
+   * Both the purchase event and the cart and checkout events name items
+   * through here. They report the same item_id, so a different item_name
+   * would split that item in two everywhere GA4 reports on names.
+   *
+   * @param \WC_Product $product
+   * @param array $details
+   *   Result of getProductDetails() for this product.
+   *
+   * @return string
+   */
+  public static function getGa4ItemName(\WC_Product $product, array $details) {
+    if ($product->get_type() !== 'variation' || !$parent_id = $product->get_parent_id()) {
+      return $details['name'];
+    }
+    if (!$parent = wc_get_product($parent_id)) {
+      return $details['name'];
+    }
+    if (!$name = get_post_meta($parent_id, Plugin::PREFIX . '_custom_product_name', TRUE)) {
+      $name = str_replace(["'", '"'], '', wp_strip_all_tags($parent->get_name(), TRUE));
+    }
+    return $name;
   }
 
   /**
@@ -455,20 +491,8 @@ class WooCommerce {
     $product_id = $product->get_id();
     $product_details = static::getProductDetails($product_id);
 
-    // For variations, override the name with the parent product name
-    if ($product->get_type() === 'variation') {
-      $parent_id = $product->get_parent_id();
-      if ($parent_id) {
-        $parent_product = wc_get_product($parent_id);
-        if ($parent_product) {
-          // Check for custom product name on parent, otherwise use parent's name
-          if (!$parent_name = get_post_meta($parent_id, Plugin::PREFIX . '_custom_product_name', TRUE)) {
-            $parent_name = str_replace(["'", '"'], '', wp_strip_all_tags($parent_product->get_name(), TRUE));
-          }
-          $product_details['name'] = $parent_name;
-        }
-      }
-    }
+    // For variations, override the name with the parent product name.
+    $product_details['name'] = static::getGa4ItemName($product, $product_details);
 
     if (($product->get_type() === 'variable' && $is_detail_view) || ($product->get_type() === 'variation' && !isset($product_details['variant']))) {
       $attributes = $product->get_variation_attributes();
