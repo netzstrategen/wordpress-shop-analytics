@@ -94,12 +94,11 @@ class BlockCheckout {
     $source = defined('SCRIPT_DEBUG') && SCRIPT_DEBUG ? '/assets' : '/dist';
     $scripts = Plugin::getBaseUrl() . $source . '/scripts/datalayer';
 
-    // Versioned by file, not by WordPress version like the plugin's other
-    // scripts: those change behaviour rarely, this one decides what every
-    // checkout reports, and a browser holding a stale copy would keep sending
-    // the old events after a fix ships.
-    $file = Plugin::getBasePath() . $source . '/scripts/datalayer/block-cart-checkout.js';
-    $version = file_exists($file) ? filemtime($file) : FALSE;
+    // Versioned per deployed commit, not by WordPress version like the
+    // plugin's other scripts: those change behaviour rarely, this one decides
+    // what every checkout reports, and a browser holding a stale copy would
+    // keep sending the old events after a fix ships.
+    $version = Plugin::getAssetVersion(Plugin::getBasePath() . $source . '/scripts/datalayer/block-cart-checkout.js');
 
     wp_enqueue_script(
       $handle . '_block_cart_checkout',

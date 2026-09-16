@@ -399,6 +399,55 @@ class Plugin {
    *
    * @return string
    */
+  /**
+   * Generates a version out of the current commit hash.
+   *
+   * Same idea as the other plugins here, with the repository root looked up
+   * instead of assumed: this is a Bedrock layout, so ABSPATH is web/wp/ and
+   * .git sits two levels above it. Falls back to the file's own timestamp,
+   * because an unversioned script is the one outcome to avoid — a browser
+   * holding a stale copy keeps reporting the old events after a fix ships.
+   *
+   * @param string $file
+   *   Absolute path of the asset, used when there is no repository to read.
+   *
+   * @return string|int|FALSE
+   */
+  public static function getAssetVersion($file = '') {
+    // While developing, the commit does not move between edits, so the file's
+    // own timestamp is the only thing that busts the browser cache.
+    if (defined('SCRIPT_DEBUG') && SCRIPT_DEBUG && $file && file_exists($file)) {
+      return filemtime($file);
+    }
+    static $git_version;
+    if (!isset($git_version)) {
+      $git_version = FALSE;
+      $directory = ABSPATH;
+      // The repository root is above ABSPATH, but not always by the same
+      // number of levels, so walk up rather than count.
+      for ($level = 0; $level < 4 && $directory && $directory !== '/'; $level++) {
+        if (is_dir($directory . '.git')) {
+          $head = @file_get_contents($directory . '.git/HEAD');
+          if ($head !== FALSE) {
+            $ref = trim($head);
+            if (strpos($ref, 'ref:') === 0) {
+              $ref = trim(substr($ref, 5));
+              $resolved = @file_get_contents($directory . '.git/' . $ref);
+              $ref = $resolved !== FALSE ? trim($resolved) : substr($ref, 11);
+            }
+            $git_version = substr($ref, 0, 8);
+          }
+          break;
+        }
+        $directory = trailingslashit(dirname(untrailingslashit($directory)));
+      }
+    }
+    if ($git_version) {
+      return $git_version;
+    }
+    return $file && file_exists($file) ? filemtime($file) : FALSE;
+  }
+
   public static function getBasePath() {
     return dirname(__DIR__);
   }
