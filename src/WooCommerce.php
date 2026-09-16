@@ -194,15 +194,23 @@ class WooCommerce {
    * Mirrors what the Store API puts in prices.price for a cart item, so the
    * checkout events and the purchase event report the same number: the line
    * subtotal per unit, with tax included only when the shop displays it that
-   * way.
+   * way. Dynamic pricing and a VAT exemption are both already baked into the
+   * line, so they carry over.
+   *
+   * WooCommerce rounds the line rather than the unit, so where the line does
+   * not divide evenly this can land a cent away from the price the checkout
+   * showed. Recording the price on the line instead would be exact, but the
+   * Store API only rebuilds line items when the cart hash changes, so such a
+   * record would go stale the moment anything else moved the price — a VAT
+   * exemption entered later, for one.
    *
    * @param \WC_Order_Item_Product $order_item
    *
    * @return float
    */
   public static function getOrderItemUnitPrice($order_item) {
-    $quantity = (int) $order_item->get_quantity();
-    if ($quantity < 1) {
+    $quantity = (float) $order_item->get_quantity();
+    if ($quantity <= 0) {
       $quantity = 1;
     }
     $subtotal = (float) $order_item->get_subtotal();
@@ -519,7 +527,7 @@ class WooCommerce {
     // catalog price is not it: dynamic pricing and a VAT exemption both move
     // the price of the line without touching the product.
     if ($unit_price !== NULL) {
-      $product_details['price'] = number_format((float) $unit_price, 2, '.', '');
+      $product_details['price'] = number_format((float) $unit_price, wc_get_price_decimals(), '.', '');
     }
 
     // For variations, override the name with the parent product name.

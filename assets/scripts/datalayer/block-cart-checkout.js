@@ -36,8 +36,19 @@
    * Converts a Store API amount, which is an integer in the minor unit.
    */
   function amount(value, minorUnit) {
-    var unit = typeof minorUnit === 'number' ? minorUnit : 2;
+    var unit = decimals(minorUnit);
     return parseFloat((parseInt(value, 10) / Math.pow(10, unit)).toFixed(unit));
+  }
+
+  /**
+   * toFixed throws above 100, and the currency decimals setting has no upper
+   * bound, so a nonsensical value would take the whole subscriber down.
+   */
+  function decimals(minorUnit) {
+    if (typeof minorUnit !== 'number' || !isFinite(minorUnit) || minorUnit < 0) {
+      return 2;
+    }
+    return Math.min(Math.floor(minorUnit), 100);
   }
 
   /**
@@ -211,7 +222,7 @@
     }
     else {
       removedItems(seen.items, cart).forEach(function (gone) {
-        var unit = typeof gone.minorUnit === 'number' ? gone.minorUnit : 2;
+        var unit = decimals(gone.minorUnit);
         push('remove_from_cart', {
           currency: cart.totals.currency_code,
           value: parseFloat((gone.item.price * gone.item.quantity).toFixed(unit)),
@@ -247,12 +258,27 @@
     }
   }
 
+  /**
+   * The payment method the customer can actually pay with.
+   *
+   * The store restores the method held in the session before it knows which
+   * ones this cart allows, so it can briefly report one that is no longer
+   * available. Reporting that would be a step the customer never took.
+   */
   function activePaymentMethod() {
     var store = wp.data.select(PAYMENT);
     if (!store || typeof store.getActivePaymentMethod !== 'function') {
       return null;
     }
-    return store.getActivePaymentMethod() || null;
+    var active = store.getActivePaymentMethod();
+    if (!active) {
+      return null;
+    }
+    var available = typeof store.getAvailablePaymentMethods === 'function' ? store.getAvailablePaymentMethods() : null;
+    if (available && !Object.prototype.hasOwnProperty.call(available, active)) {
+      return null;
+    }
+    return active;
   }
 
 })(window.wp);
