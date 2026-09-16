@@ -199,10 +199,10 @@ class WooCommerce {
    *
    * WooCommerce rounds the line rather than the unit, so where the line does
    * not divide evenly this can land a cent away from the price the checkout
-   * showed. Recording the price on the line instead would be exact, but the
-   * Store API only rebuilds line items when the cart hash changes, so such a
-   * record would go stale the moment anything else moved the price — a VAT
-   * exemption entered later, for one.
+   * showed. Quantities are whole numbers here, which bounds the error there.
+   * Recording the price on the line at creation would be exact and remains
+   * open; it was left out because a cent is within tolerance, not because it
+   * would go stale.
    *
    * @param \WC_Order_Item_Product $order_item
    *

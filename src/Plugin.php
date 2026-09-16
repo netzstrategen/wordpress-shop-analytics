@@ -429,18 +429,17 @@ class Plugin {
         if (is_dir($directory . '.git')) {
           $head = @file_get_contents($directory . '.git/HEAD');
           if ($head !== FALSE) {
-            $ref = trim($head);
-            if (strpos($ref, 'ref:') === 0) {
-              $ref = trim(substr($ref, 5));
-              $resolved = @file_get_contents($directory . '.git/' . $ref);
-              $ref = $resolved !== FALSE ? trim($resolved) : substr($ref, 11);
+            $hash = trim($head);
+            if (strpos($hash, 'ref:') === 0) {
+              // A ref that cannot be read leaves no candidate at all. Taking
+              // the ref's own name would give a version that never changes
+              // between deploys, and a branch named like hex digits would
+              // pass for a commit.
+              $resolved = @file_get_contents($directory . '.git/' . trim(substr($hash, 5)));
+              $hash = $resolved !== FALSE ? trim($resolved) : '';
             }
-            // Only a resolved hash. A ref that cannot be read — packed
-            // refs, a .git file rather than a directory — would otherwise
-            // leave the ref's own name here: a version that looks valid and
-            // never changes, which is the failure this helper exists to
-            // prevent.
-            $git_version = preg_match('/^[0-9a-f]{8}/', $ref) ? substr($ref, 0, 8) : FALSE;
+            // A whole object name, not merely something starting like one.
+            $git_version = preg_match('/^[0-9a-f]{40}([0-9a-f]{24})?$/', $hash) ? substr($hash, 0, 8) : FALSE;
           }
           break;
         }

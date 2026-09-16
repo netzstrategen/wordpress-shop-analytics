@@ -22,6 +22,7 @@
   // cheap to ignore and nothing is pushed twice.
   var seen = {
     entered: false,
+    refetched: false,
     items: null,
     shippingId: null,
     paymentType: null
@@ -31,6 +32,35 @@
   // subscribe() does not call the listener on registration, so a store that
   // already resolved before this script ran would never be seen.
   onStoreChange();
+
+  /**
+   * Whether every item carries this plugin's Store API data.
+   */
+  function identified(cart) {
+    return cart.items.every(function (item) {
+      var extra = item.extensions && item.extensions[settings.namespace];
+      // The tracking id itself, not merely the namespace: an empty object
+      // passes a presence check while carrying nothing to report.
+      return !!(extra && extra.item_id);
+    });
+  }
+
+  /**
+   * Asks the blocks to fetch the cart again, once.
+   */
+  function refetchCart() {
+    try {
+      var store = wp.data.dispatch(CART);
+      if (store && typeof store.invalidateResolutionForStoreSelector === 'function') {
+        store.invalidateResolutionForStoreSelector('getCartData');
+      }
+    }
+    catch (error) {
+      // Never break the cart over analytics: without a refresh the next
+      // store change reports what it has.
+      seen.refetched = true;
+    }
+  }
 
   /**
    * Converts a Store API amount, which is an integer in the minor unit.
@@ -208,6 +238,16 @@
       if (!cart.items.length) {
         return;
       }
+      // A cart snapshot stored before this plugin shipped carries no
+      // extension data, and the blocks hydrate it as already resolved. Its
+      // items would be reported by product id instead of the tracking id the
+      // purchase event uses, and the first event cannot be taken back, so
+      // fetch the cart once and wait for the answer.
+      if (!identified(cart) && !seen.refetched) {
+        seen.refetched = true;
+        refetchCart();
+        return;
+      }
       seen.entered = true;
       seen.items = snapshot(cart);
 
@@ -234,8 +274,13 @@
       seen.items = snapshot(cart);
     }
 
-    // Shipping and payment are steps of the checkout, not of the cart.
+    // The cart has no shipping step, but it does offer express payment, and
+    // clicking Apple Pay there is a real choice. Anything else on the cart
+    // page is the session's leftover default, which the customer never picked.
     if (settings.page !== 'checkout') {
+      if (expressPaymentActive()) {
+        reportPayment(cart);
+      }
       return;
     }
 
@@ -249,13 +294,18 @@
       push('add_shipping_info', shipping);
     }
 
+    reportPayment(cart);
+  }
+
+  function reportPayment(cart) {
     var payment = activePaymentMethod();
-    if (payment && payment !== seen.paymentType) {
-      seen.paymentType = payment;
-      var paying = cartEcommerce(cart);
-      paying.payment_type = payment;
-      push('add_payment_info', paying);
+    if (!payment || payment === seen.paymentType) {
+      return;
     }
+    seen.paymentType = payment;
+    var paying = cartEcommerce(cart);
+    paying.payment_type = payment;
+    push('add_payment_info', paying);
   }
 
   /**
@@ -264,6 +314,10 @@
    * The store restores the method held in the session before it knows which
    * ones this cart allows, so it can briefly report one that is no longer
    * available. Reporting that would be a step the customer never took.
+   *
+   * Express methods live in their own map, so both have to be consulted: a
+   * customer paying with Apple Pay picks a method that the regular map has
+   * never heard of.
    */
   function activePaymentMethod() {
     var store = wp.data.select(PAYMENT);
@@ -274,11 +328,28 @@
     if (!active) {
       return null;
     }
-    var available = typeof store.getAvailablePaymentMethods === 'function' ? store.getAvailablePaymentMethods() : null;
-    if (available && !Object.prototype.hasOwnProperty.call(available, active)) {
-      return null;
+    if (offered(store, 'getAvailablePaymentMethods', active) || offered(store, 'getAvailableExpressPaymentMethods', active)) {
+      return active;
     }
-    return active;
+    return null;
+  }
+
+  function offered(store, selector, method) {
+    if (typeof store[selector] !== 'function') {
+      // Without the selector there is nothing to check against, so the
+      // method stands rather than being dropped.
+      return true;
+    }
+    var methods = store[selector]();
+    return !!methods && Object.prototype.hasOwnProperty.call(methods, method);
+  }
+
+  function expressPaymentActive() {
+    var store = wp.data.select(PAYMENT);
+    if (!store || typeof store.isExpressPaymentMethodActive !== 'function') {
+      return false;
+    }
+    return !!store.isExpressPaymentMethodActive();
   }
 
 })(window.wp);
