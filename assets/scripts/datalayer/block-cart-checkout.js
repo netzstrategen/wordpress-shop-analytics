@@ -1,0 +1,223 @@
+'use strict';
+
+/**
+ * GA4 ecommerce events for the Cart and Checkout blocks.
+ *
+ * The blocks render from React and keep their state in the wc/store/* data
+ * stores, so none of the jQuery events cart-checkout.js listens for ever fire
+ * here. This reads the same cart the blocks render and pushes on change.
+ */
+(function (wp) {
+  var shopAnalytics = document.shopAnalytics;
+  var settings = window.shop_analytics_block_data;
+
+  if (!wp || !wp.data || !shopAnalytics || !settings) {
+    return;
+  }
+
+  var CART = 'wc/store/cart';
+  var PAYMENT = 'wc/store/payment';
+
+  // What the last push saw, so a store change that does not concern us is
+  // cheap to ignore and nothing is pushed twice.
+  var seen = {
+    entered: false,
+    items: null,
+    shippingTier: null,
+    paymentType: null
+  };
+
+  wp.data.subscribe(onStoreChange);
+
+  /**
+   * Converts a Store API amount, which is an integer in the minor unit.
+   */
+  function amount(value, minorUnit) {
+    var unit = typeof minorUnit === 'number' ? minorUnit : 2;
+    return parseFloat((parseInt(value, 10) / Math.pow(10, unit)).toFixed(unit));
+  }
+
+  /**
+   * Builds the items array from the cart.
+   *
+   * The identifying fields come from the Store API extension rather than from
+   * the cart item itself, so they match what the purchase event sends.
+   */
+  function buildItems(cart) {
+    return cart.items.map(function (item, position) {
+      var extra = (item.extensions && item.extensions[settings.namespace]) || {};
+      var built = {
+        item_id: String(extra.item_id || item.id),
+        item_name: extra.item_name || item.name,
+        price: typeof extra.price === 'number' ? extra.price : amount(item.prices.price, item.prices.currency_minor_unit),
+        quantity: item.quantity,
+        index: position + 1
+      };
+      if (extra.item_brand) {
+        built.item_brand = extra.item_brand;
+      }
+      if (extra.item_category) {
+        built.item_category = extra.item_category;
+      }
+      if (extra.item_variant) {
+        built.item_variant = extra.item_variant;
+      }
+      return built;
+    });
+  }
+
+  /**
+   * Pushes one ecommerce event.
+   *
+   * The null push clears the previous ecommerce object, so items from an
+   * earlier event cannot leak into this one.
+   */
+  function push(event, ecommerce) {
+    shopAnalytics.postToDataLayer({ecommerce: null});
+    shopAnalytics.postToDataLayer({event: event, ecommerce: ecommerce});
+  }
+
+  function cartEcommerce(cart) {
+    return {
+      currency: cart.totals.currency_code,
+      // The gross cart total, as the ticket specifies.
+      value: amount(cart.totals.total_price, cart.totals.currency_minor_unit),
+      items: buildItems(cart)
+    };
+  }
+
+  function couponCodes(cart) {
+    return cart.coupons.map(function (coupon) {
+      return coupon.code;
+    }).join(',');
+  }
+
+  /**
+   * The shipping rate the customer has selected, if any.
+   */
+  function selectedShipping(cart) {
+    var selected = null;
+    (cart.shippingRates || []).forEach(function (packageRates) {
+      (packageRates.shipping_rates || []).forEach(function (rate) {
+        if (rate.selected) {
+          selected = rate.name;
+        }
+      });
+    });
+    return selected;
+  }
+
+  /**
+   * Items that lost quantity since the last state, as remove_from_cart wants
+   * them: only the affected item, and only the amount that went away.
+   */
+  function removedItems(before, cart) {
+    var current = {};
+    cart.items.forEach(function (item) {
+      current[item.key] = item.quantity;
+    });
+
+    var removed = [];
+    Object.keys(before.quantities).forEach(function (key) {
+      var gone = before.quantities[key] - (current[key] || 0);
+      if (gone <= 0) {
+        return;
+      }
+      var item = before.items[key];
+      if (item) {
+        var gone_item = Object.assign({}, item, {quantity: gone});
+        // The ticket's removal payload has no index.
+        delete gone_item.index;
+        removed.push(gone_item);
+      }
+    });
+    return removed;
+  }
+
+  /**
+   * Snapshot used to tell a removal from any other cart change.
+   */
+  function snapshot(cart) {
+    var quantities = {};
+    var items = {};
+    var built = buildItems(cart);
+    cart.items.forEach(function (item, position) {
+      quantities[item.key] = item.quantity;
+      items[item.key] = built[position];
+    });
+    return {quantities: quantities, items: items};
+  }
+
+  function onStoreChange() {
+    var cartStore = wp.data.select(CART);
+    if (!cartStore || !cartStore.hasFinishedResolution('getCartData')) {
+      return;
+    }
+    var cart = cartStore.getCartData();
+    if (!cart || !cart.items) {
+      return;
+    }
+
+    // The first state with items is the one the customer is looking at.
+    if (!seen.entered) {
+      if (!cart.items.length) {
+        return;
+      }
+      seen.entered = true;
+      seen.items = snapshot(cart);
+
+      if (settings.page === 'checkout') {
+        var checkout = cartEcommerce(cart);
+        checkout.coupon = couponCodes(cart);
+        push('begin_checkout', checkout);
+      }
+      else {
+        push('view_cart', cartEcommerce(cart));
+      }
+    }
+    else {
+      removedItems(seen.items, cart).forEach(function (item) {
+        push('remove_from_cart', {
+          currency: cart.totals.currency_code,
+          value: parseFloat((item.price * item.quantity).toFixed(2)),
+          items: [item]
+        });
+      });
+      // Always move the snapshot forward, so the next decrease is measured
+      // from the quantities the customer can see right now.
+      seen.items = snapshot(cart);
+    }
+
+    // Shipping and payment are steps of the checkout, not of the cart.
+    if (settings.page !== 'checkout') {
+      return;
+    }
+
+    // seen starts empty, so the method the checkout resolves first counts as
+    // a selection and the funnel gets its step even if nothing is switched.
+    var tier = selectedShipping(cart);
+    if (tier && tier !== seen.shippingTier) {
+      seen.shippingTier = tier;
+      var shipping = cartEcommerce(cart);
+      shipping.shipping_tier = tier;
+      push('add_shipping_info', shipping);
+    }
+
+    var payment = activePaymentMethod();
+    if (payment && payment !== seen.paymentType) {
+      seen.paymentType = payment;
+      var paying = cartEcommerce(cart);
+      paying.payment_type = payment;
+      push('add_payment_info', paying);
+    }
+  }
+
+  function activePaymentMethod() {
+    var store = wp.data.select(PAYMENT);
+    if (!store || typeof store.getActivePaymentMethod !== 'function') {
+      return null;
+    }
+    return store.getActivePaymentMethod() || null;
+  }
+
+})(window.wp);

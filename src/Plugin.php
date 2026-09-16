@@ -70,6 +70,10 @@ class Plugin {
 
       // Enqueue Google Analytics Data Layer related scripts.
       add_action('wp_enqueue_scripts', __CLASS__ . '::enqueueGaDataLayerScripts');
+
+      // The Cart and Checkout blocks need their own events; cart-checkout.js
+      // only reaches the shortcode flow.
+      BlockCheckout::init();
     }
   }
 

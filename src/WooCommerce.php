@@ -116,6 +116,58 @@ class WooCommerce {
   }
 
   /**
+   * Builds the GA4 ecommerce item for a product, as the purchase event sends it.
+   *
+   * The dataLayer joins cart, checkout and purchase on item_id, so this has to
+   * agree with what getProductDetailsHtmlDataAttr() renders for the classic
+   * flow — same tracking id, same name, same category path, same variant.
+   *
+   * Quantity and index are not product data and are left to the caller.
+   *
+   * @param \WC_Product $product
+   *
+   * @return array
+   */
+  public static function getGa4ItemData(\WC_Product $product) {
+    $details = static::getProductDetails($product->get_id());
+    if (!$details) {
+      return [];
+    }
+
+    $item = [
+      'item_id' => (string) $details['ecommerce_track_id'],
+      'item_name' => $details['name'],
+      // Numbers, not strings: GA4 discards a price it cannot read as numeric.
+      'price' => (float) $details['price'],
+    ];
+    if (!empty($details['category'])) {
+      $item['item_category'] = $details['category'];
+    }
+    if (!empty($details['brand'])) {
+      $item['item_brand'] = $details['brand'];
+    }
+    if ($variant = static::getGa4ItemVariant($product)) {
+      $item['item_variant'] = $variant;
+    }
+    return $item;
+  }
+
+  /**
+   * The variant label of a variation.
+   *
+   * Spelled exactly as getProductDetailsHtmlDataAttr() spells it for the
+   * purchase event, empty attributes included, or the two would disagree and
+   * the funnel would not join.
+   */
+  public static function getGa4ItemVariant(\WC_Product $product) {
+    if ($product->get_type() !== 'variation') {
+      return '';
+    }
+    $selected = array_map('trim', array_values($product->get_variation_attributes()));
+    return $selected ? strtolower(implode('-', $selected)) : '';
+  }
+
+  /**
    * Retrieves the attributes of a given product.
    *
    * @param \WC_Product $product
