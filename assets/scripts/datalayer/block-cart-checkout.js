@@ -92,9 +92,10 @@
   }
 
   function couponCodes(cart) {
+    // ' | ' is the separator the purchase event already uses.
     return cart.coupons.map(function (coupon) {
       return coupon.code;
-    }).join(',');
+    }).join(' | ');
   }
 
   /**
@@ -105,20 +106,37 @@
    * would hide a real change.
    */
   function selectedShipping(cart) {
-    var ids = [];
-    var names = [];
+    var chosen = [];
     (cart.shippingRates || []).forEach(function (packageRates) {
       (packageRates.shipping_rates || []).forEach(function (rate) {
         if (rate.selected) {
-          ids.push(packageRates.package_id + ':' + rate.rate_id);
-          names.push(rate.name);
+          chosen.push({pkg: String(packageRates.package_id), rate: rate.rate_id, name: decode(rate.name)});
         }
       });
     });
-    if (!ids.length) {
+    if (!chosen.length) {
       return null;
     }
-    return {id: ids.join('|'), tier: names.join(', ')};
+    // Sorted by package: the response may list the same packages in another
+    // order, and an order-dependent fingerprint would read as a change.
+    chosen.sort(function (a, b) {
+      return a.pkg < b.pkg ? -1 : (a.pkg > b.pkg ? 1 : 0);
+    });
+    return {
+      id: chosen.map(function (c) { return c.pkg + ':' + c.rate; }).join('|'),
+      tier: chosen.map(function (c) { return c.name; }).join(', ')
+    };
+  }
+
+  /**
+   * Shipping names arrive HTML-encoded, so "DHL & Express" would be sent as
+   * "DHL &#038; Express".
+   */
+  function decode(text) {
+    if (wp.htmlEntities && typeof wp.htmlEntities.decodeEntities === 'function') {
+      return wp.htmlEntities.decodeEntities(text);
+    }
+    return text;
   }
 
   /**
@@ -142,7 +160,7 @@
         var gone_item = Object.assign({}, item, {quantity: gone});
         // The ticket's removal payload has no index.
         delete gone_item.index;
-        removed.push(gone_item);
+        removed.push({item: gone_item, minorUnit: before.units[key]});
       }
     });
     return removed;
@@ -154,12 +172,14 @@
   function snapshot(cart) {
     var quantities = {};
     var items = {};
+    var units = {};
     var built = buildItems(cart);
     cart.items.forEach(function (item, position) {
       quantities[item.key] = item.quantity;
       items[item.key] = built[position];
+      units[item.key] = item.prices.currency_minor_unit;
     });
-    return {quantities: quantities, items: items};
+    return {quantities: quantities, items: items, units: units};
   }
 
   function onStoreChange() {
@@ -190,11 +210,12 @@
       }
     }
     else {
-      removedItems(seen.items, cart).forEach(function (item) {
+      removedItems(seen.items, cart).forEach(function (gone) {
+        var unit = typeof gone.minorUnit === 'number' ? gone.minorUnit : 2;
         push('remove_from_cart', {
           currency: cart.totals.currency_code,
-          value: parseFloat((item.price * item.quantity).toFixed(2)),
-          items: [item]
+          value: parseFloat((gone.item.price * gone.item.quantity).toFixed(unit)),
+          items: [gone.item]
         });
       });
       // Always move the snapshot forward, so the next decrease is measured

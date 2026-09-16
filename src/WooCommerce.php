@@ -189,6 +189,30 @@ class WooCommerce {
   }
 
   /**
+   * The unit price of an order item, before coupons, as the cart showed it.
+   *
+   * Mirrors what the Store API puts in prices.price for a cart item, so the
+   * checkout events and the purchase event report the same number: the line
+   * subtotal per unit, with tax included only when the shop displays it that
+   * way.
+   *
+   * @param \WC_Order_Item_Product $order_item
+   *
+   * @return float
+   */
+  public static function getOrderItemUnitPrice($order_item) {
+    $quantity = (int) $order_item->get_quantity();
+    if ($quantity < 1) {
+      $quantity = 1;
+    }
+    $subtotal = (float) $order_item->get_subtotal();
+    if (get_option('woocommerce_tax_display_cart') === 'incl') {
+      $subtotal += (float) $order_item->get_subtotal_tax();
+    }
+    return $subtotal / $quantity;
+  }
+
+  /**
    * The variant label of a variation.
    *
    * Spelled exactly as getProductDetailsHtmlDataAttr() spells it for the
@@ -483,13 +507,20 @@ class WooCommerce {
    * @return string
    *   hidden HTML div element with product details as data attributes.
    */
-  public static function getProductDetailsHtmlDataAttr(?\WC_Product $product, $is_detail_view = FALSE) {
+  public static function getProductDetailsHtmlDataAttr(?\WC_Product $product, $is_detail_view = FALSE, $unit_price = NULL) {
     if(!$product) {
       return '';
     }
 
     $product_id = $product->get_id();
     $product_details = static::getProductDetails($product_id);
+
+    // What the customer was actually charged, when the caller knows it. The
+    // catalog price is not it: dynamic pricing and a VAT exemption both move
+    // the price of the line without touching the product.
+    if ($unit_price !== NULL) {
+      $product_details['price'] = number_format((float) $unit_price, 2, '.', '');
+    }
 
     // For variations, override the name with the parent product name.
     $product_details['name'] = static::getGa4ItemName($product, $product_details);
@@ -575,7 +606,7 @@ class WooCommerce {
 
     foreach ($order->get_items() as $order_item) {
       $product = $order_item->get_product();
-      $html .= str_replace('></div>', ' data-quantity="' . $order_item->get_quantity() . '"></div>', static::getProductDetailsHtmlDataAttr($product));
+      $html .= str_replace('></div>', ' data-quantity="' . $order_item->get_quantity() . '"></div>', static::getProductDetailsHtmlDataAttr($product, FALSE, static::getOrderItemUnitPrice($order_item)));
     }
 
     $html .= '<div id="shop-analytics-order-email" style="display:none;height:0;">' . $order_data['billing']['email'] . '</div>';

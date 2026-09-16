@@ -94,11 +94,18 @@ class BlockCheckout {
     $source = defined('SCRIPT_DEBUG') && SCRIPT_DEBUG ? '/assets' : '/dist';
     $scripts = Plugin::getBaseUrl() . $source . '/scripts/datalayer';
 
+    // Versioned by file, not by WordPress version like the plugin's other
+    // scripts: those change behaviour rarely, this one decides what every
+    // checkout reports, and a browser holding a stale copy would keep sending
+    // the old events after a fix ships.
+    $file = Plugin::getBasePath() . $source . '/scripts/datalayer/block-cart-checkout.js';
+    $version = file_exists($file) ? filemtime($file) : FALSE;
+
     wp_enqueue_script(
       $handle . '_block_cart_checkout',
       "$scripts/block-cart-checkout.js",
-      [$handle . '_common', 'wp-data'],
-      FALSE,
+      [$handle . '_common', 'wp-data', 'wp-html-entities'],
+      $version,
       TRUE
     );
     wp_localize_script($handle . '_block_cart_checkout', Plugin::PREFIX . '_block_data', [
@@ -121,8 +128,15 @@ class BlockCheckout {
     // is_checkout() is TRUE on them too. The blocks do not render there, and
     // a cart left in the session would push a checkout event over the
     // thank-you page.
+    // Only these two endpoints. The bare is_wc_endpoint_url() also matches
+    // unrelated endpoint query vars on the checkout URL itself, which would
+    // silently drop the events there. WooCommerce's own Checkout block
+    // excludes exactly this pair.
     if (is_checkout()) {
-      return !is_wc_endpoint_url() && has_block('woocommerce/checkout', get_post());
+      if (is_wc_endpoint_url('order-pay') || is_wc_endpoint_url('order-received')) {
+        return FALSE;
+      }
+      return has_block('woocommerce/checkout', get_post());
     }
     if (is_cart()) {
       return has_block('woocommerce/cart', get_post());
