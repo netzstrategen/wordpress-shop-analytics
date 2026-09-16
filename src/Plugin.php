@@ -435,7 +435,12 @@ class Plugin {
               $resolved = @file_get_contents($directory . '.git/' . $ref);
               $ref = $resolved !== FALSE ? trim($resolved) : substr($ref, 11);
             }
-            $git_version = substr($ref, 0, 8);
+            // Only a resolved hash. A ref that cannot be read — packed
+            // refs, a .git file rather than a directory — would otherwise
+            // leave the ref's own name here: a version that looks valid and
+            // never changes, which is the failure this helper exists to
+            // prevent.
+            $git_version = preg_match('/^[0-9a-f]{8}/', $ref) ? substr($ref, 0, 8) : FALSE;
           }
           break;
         }
