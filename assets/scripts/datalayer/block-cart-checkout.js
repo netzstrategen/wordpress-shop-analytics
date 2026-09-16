@@ -25,7 +25,11 @@
     refetched: false,
     items: null,
     shippingId: null,
-    paymentType: null
+    paymentType: null,
+    // What was selected before an express attempt, so its cancellation is
+    // not read as the customer choosing that method again.
+    preExpress: null,
+    beganCheckout: false
   };
 
   wp.data.subscribe(onStoreChange);
@@ -252,9 +256,7 @@
       seen.items = snapshot(cart);
 
       if (settings.page === 'checkout') {
-        var checkout = cartEcommerce(cart);
-        checkout.coupon = couponCodes(cart);
-        push('begin_checkout', checkout);
+        beginCheckout(cart);
       }
       else {
         push('view_cart', cartEcommerce(cart));
@@ -275,10 +277,14 @@
     }
 
     // The cart has no shipping step, but it does offer express payment, and
-    // clicking Apple Pay there is a real choice. Anything else on the cart
-    // page is the session's leftover default, which the customer never picked.
+    // clicking PayPal there is a real choice. Anything else on the cart page
+    // is the session's leftover default, which the customer never picked.
     if (settings.page !== 'checkout') {
       if (expressPaymentActive()) {
+        // An express purchase can finish without ever loading the checkout
+        // page, so this is where its checkout begins. Left unreported the
+        // funnel would jump from view_cart straight to purchase.
+        beginCheckout(cart);
         reportPayment(cart);
       }
       return;
@@ -297,11 +303,46 @@
     reportPayment(cart);
   }
 
+  /**
+   * Pushes begin_checkout, at most once per page.
+   *
+   * Not suppressed across pages: a customer who cancels an express payment
+   * on the cart and then opens the checkout really has started checkout
+   * twice, and suppressing the second would lose a step that happened.
+   */
+  function beginCheckout(cart) {
+    if (seen.beganCheckout) {
+      return;
+    }
+    seen.beganCheckout = true;
+    var checkout = cartEcommerce(cart);
+    checkout.coupon = couponCodes(cart);
+    push('begin_checkout', checkout);
+  }
+
   function reportPayment(cart) {
     var payment = activePaymentMethod();
     if (!payment || payment === seen.paymentType) {
       return;
     }
+
+    var express = expressPaymentActive();
+    if (express) {
+      if (seen.preExpress === null) {
+        seen.preExpress = seen.paymentType;
+      }
+    }
+    else if (seen.preExpress !== null) {
+      var restored = payment === seen.preExpress;
+      seen.preExpress = null;
+      if (restored) {
+        // The blocks put back what was selected before the express attempt.
+        // Nobody chose it, so record it without reporting a step.
+        seen.paymentType = payment;
+        return;
+      }
+    }
+
     seen.paymentType = payment;
     var paying = cartEcommerce(cart);
     paying.payment_type = payment;

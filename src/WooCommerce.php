@@ -199,7 +199,8 @@ class WooCommerce {
    *
    * WooCommerce rounds the line rather than the unit, so where the line does
    * not divide evenly this can land a cent away from the price the checkout
-   * showed. Quantities are whole numbers here, which bounds the error there.
+   * showed. Neither shop has ever recorded a fractional quantity, which
+   * bounds that error in practice, though WooCommerce does permit one.
    * Recording the price on the line at creation would be exact and remains
    * open; it was left out because a cent is within tolerance, not because it
    * would go stale.
