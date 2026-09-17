@@ -46,6 +46,9 @@ document.shopAnalytics = {
       if (product_data.variant) {
         product.item_variant = product_data.variant;
       }
+      if (product_data.discount) {
+        product.discount = document.shopAnalytics.toAmount(product_data.discount);
+      }
       if (product_data.quantity) {
         product.quantity = parseInt(product_data.quantity);
       }

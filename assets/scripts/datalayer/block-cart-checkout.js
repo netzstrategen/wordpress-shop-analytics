@@ -91,7 +91,41 @@
    * The identifying fields come from the Store API extension rather than from
    * the cart item itself, so they match what the purchase event sends.
    */
+  /**
+   * Whether the Store API is quoting prices with tax in them.
+   *
+   * Read from the cart rather than from a setting decided when the page
+   * rendered: tax display varies by country and the Store API re-resolves it
+   * per request. The line subtotal is the same figure as price x quantity,
+   * so whichever of the two matches tells us which side we are on.
+   */
+  function pricesIncludeTax(cart) {
+    for (var i = 0; i < cart.items.length; i++) {
+      var item = cart.items[i];
+      var net = parseInt(item.totals.line_subtotal, 10);
+      var tax = parseInt(item.totals.line_subtotal_tax, 10);
+      if (!tax) {
+        continue;
+      }
+      var quoted = parseInt(item.prices.price, 10) * item.quantity;
+      return Math.abs(quoted - (net + tax)) <= Math.abs(quoted - net);
+    }
+    return false;
+  }
+
+  /**
+   * The discount on one line, per unit, in minor units.
+   */
+  function lineDiscount(item, inclTax) {
+    var t = item.totals;
+    var before = parseInt(t.line_subtotal, 10) + (inclTax ? parseInt(t.line_subtotal_tax, 10) : 0);
+    var after = parseInt(t.line_total, 10) + (inclTax ? parseInt(t.line_total_tax, 10) : 0);
+    var quantity = item.quantity || 1;
+    return Math.max(0, before - after) / quantity;
+  }
+
   function buildItems(cart) {
+    var inclTax = pricesIncludeTax(cart);
     return cart.items.map(function (item, position) {
       var extra = (item.extensions && item.extensions[settings.namespace]) || {};
       var built = {
@@ -111,6 +145,12 @@
       }
       if (extra.item_variant) {
         built.item_variant = extra.item_variant;
+      }
+      // A coupon reduces what the line costs without changing the product's
+      // price, which is what GA4 keeps discount for.
+      var discount = lineDiscount(item, inclTax);
+      if (discount > 0) {
+        built.discount = amount(discount, item.prices.currency_minor_unit);
       }
       return built;
     });
@@ -149,7 +189,7 @@
   function itemsValue(items, minorUnit) {
     var unit = decimals(minorUnit);
     var sum = items.reduce(function (total, item) {
-      return total + item.price * item.quantity;
+      return total + (item.price - (item.discount || 0)) * item.quantity;
     }, 0);
     return parseFloat(sum.toFixed(unit));
   }

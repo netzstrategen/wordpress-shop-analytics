@@ -222,6 +222,27 @@ class WooCommerce {
   }
 
   /**
+   * The discount on an order line, per unit.
+   *
+   * The difference between what the line would have cost and what it did,
+   * matching the per-item discount the cart and checkout events report.
+   *
+   * @param \WC_Order_Item_Product $order_item
+   *
+   * @return float
+   */
+  public static function getOrderItemUnitDiscount($order_item) {
+    $quantity = (float) $order_item->get_quantity();
+    if ($quantity <= 0) {
+      $quantity = 1;
+    }
+    $incl = get_option('woocommerce_tax_display_cart') === 'incl';
+    $before = (float) $order_item->get_subtotal() + ($incl ? (float) $order_item->get_subtotal_tax() : 0);
+    $after = (float) $order_item->get_total() + ($incl ? (float) $order_item->get_total_tax() : 0);
+    return max(0, $before - $after) / $quantity;
+  }
+
+  /**
    * The variant label of a variation.
    *
    * Spelled exactly as getProductDetailsHtmlDataAttr() spells it for the
@@ -516,7 +537,7 @@ class WooCommerce {
    * @return string
    *   hidden HTML div element with product details as data attributes.
    */
-  public static function getProductDetailsHtmlDataAttr(?\WC_Product $product, $is_detail_view = FALSE, $unit_price = NULL) {
+  public static function getProductDetailsHtmlDataAttr(?\WC_Product $product, $is_detail_view = FALSE, $unit_price = NULL, $unit_discount = 0) {
     if(!$product) {
       return '';
     }
@@ -529,6 +550,9 @@ class WooCommerce {
     // the price of the line without touching the product.
     if ($unit_price !== NULL) {
       $product_details['price'] = number_format((float) $unit_price, wc_get_price_decimals(), '.', '');
+    }
+    if ($unit_discount) {
+      $product_details['discount'] = number_format((float) $unit_discount, wc_get_price_decimals(), '.', '');
     }
 
     // For variations, override the name with the parent product name.
@@ -615,7 +639,7 @@ class WooCommerce {
 
     foreach ($order->get_items() as $order_item) {
       $product = $order_item->get_product();
-      $html .= str_replace('></div>', ' data-quantity="' . $order_item->get_quantity() . '"></div>', static::getProductDetailsHtmlDataAttr($product, FALSE, static::getOrderItemUnitPrice($order_item)));
+      $html .= str_replace('></div>', ' data-quantity="' . $order_item->get_quantity() . '"></div>', static::getProductDetailsHtmlDataAttr($product, FALSE, static::getOrderItemUnitPrice($order_item), static::getOrderItemUnitDiscount($order_item)));
     }
 
     $html .= '<div id="shop-analytics-order-email" style="display:none;height:0;">' . $order_data['billing']['email'] . '</div>';

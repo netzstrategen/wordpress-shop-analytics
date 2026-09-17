@@ -60,6 +60,10 @@ class BlockCheckout {
     'express_checkout_element_googlePay' => 'google-pay',
     'express_checkout_element_amazonPay' => 'amazon',
     'express_checkout_element_link' => 'link',
+    // Not registered on either shop today, but PayPal defines them and they
+    // would otherwise report their raw id the moment someone enables one.
+    'ppcp-applepay' => 'apple-pay',
+    'ppcp-googlepay' => 'google-pay',
   ];
 
   /**
