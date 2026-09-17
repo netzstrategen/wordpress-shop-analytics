@@ -13,6 +13,11 @@ namespace Netzstrategen\ShopAnalytics;
 class WooCommerce {
 
   /**
+   * Order meta recording the tax display the checkout used.
+   */
+  const META_PRICES_INCLUDE_TAX = '_shop_analytics_prices_include_tax';
+
+  /**
    * Retrieves the current page type.
    *
    * @param int $post_id
@@ -113,6 +118,214 @@ class WooCommerce {
     }
 
     return $details;
+  }
+
+  /**
+   * Builds the GA4 ecommerce item for a product, as the purchase event sends it.
+   *
+   * The dataLayer joins cart, checkout and purchase on item_id, so this has to
+   * agree with what getProductDetailsHtmlDataAttr() renders for the classic
+   * flow — same tracking id, same name, same category path, same variant.
+   *
+   * Quantity and index are not product data and are left to the caller.
+   *
+   * @param \WC_Product $product
+   *
+   * @return array
+   */
+  public static function getGa4ItemData(\WC_Product $product) {
+    // The Store API rebuilds every cart item on every cart and checkout
+    // request, so without this getProductDetails() would run its taxonomy
+    // lookups once per line, per request.
+    static $cache = [];
+    $id = $product->get_id();
+    if (isset($cache[$id])) {
+      return $cache[$id];
+    }
+
+    $details = static::getProductDetails($id);
+    if (!$details) {
+      return $cache[$id] = [];
+    }
+
+    // No price here: the catalog price is not the price of this cart line.
+    // Composites, bundles and dynamic pricing change it, so the script reads
+    // the contextual one the Store API already sends.
+    $item = [
+      'item_id' => (string) $details['ecommerce_track_id'],
+      'item_name' => static::getGa4ItemName($product, $details),
+    ];
+    if (!empty($details['category'])) {
+      $item['item_category'] = $details['category'];
+    }
+    if (!empty($details['brand'])) {
+      $item['item_brand'] = $details['brand'];
+    }
+    if ($variant = static::getGa4ItemVariant($product)) {
+      $item['item_variant'] = $variant;
+    }
+    return $cache[$id] = $item;
+  }
+
+  /**
+   * The item name, with a variation reported under its parent product's name.
+   *
+   * Both the purchase event and the cart and checkout events name items
+   * through here. They report the same item_id, so a different item_name
+   * would split that item in two everywhere GA4 reports on names.
+   *
+   * @param \WC_Product $product
+   * @param array $details
+   *   Result of getProductDetails() for this product.
+   *
+   * @return string
+   */
+  public static function getGa4ItemName(\WC_Product $product, array $details) {
+    if ($product->get_type() !== 'variation' || !$parent_id = $product->get_parent_id()) {
+      return $details['name'];
+    }
+    if (!$parent = wc_get_product($parent_id)) {
+      return $details['name'];
+    }
+    if (!$name = get_post_meta($parent_id, Plugin::PREFIX . '_custom_product_name', TRUE)) {
+      $name = str_replace(["'", '"'], '', wp_strip_all_tags($parent->get_name(), TRUE));
+    }
+    return $name;
+  }
+
+  /**
+   * The unit price of an order item, before coupons, as the cart showed it.
+   *
+   * Mirrors what the Store API puts in prices.price for a cart item, so the
+   * checkout events and the purchase event report the same number: the line
+   * subtotal per unit, with tax included only when the shop displays it that
+   * way. Dynamic pricing and a VAT exemption are both already baked into the
+   * line, so they carry over.
+   *
+   * WooCommerce rounds the line rather than the unit, so where the line does
+   * not divide evenly this can land a cent away from the price the checkout
+   * showed. Neither shop has ever recorded a fractional quantity, which
+   * bounds that error in practice, though WooCommerce does permit one.
+   * Recording the price on the line at creation would be exact and remains
+   * open; it was left out because a cent is within tolerance, not because it
+   * would go stale.
+   *
+   * @param \WC_Order_Item_Product $order_item
+   *
+   * @return float
+   */
+  public static function getOrderItemUnitPrice($order_item) {
+    $quantity = (float) $order_item->get_quantity();
+    if ($quantity <= 0) {
+      $quantity = 1;
+    }
+    // What the unit was paid at. GA4 counts item revenue as price times
+    // quantity and does not deduct discount, so the price it is given has to
+    // be the one the money followed.
+    $total = (float) $order_item->get_total();
+    if (static::orderItemPricesIncludeTax($order_item)) {
+      $total += (float) $order_item->get_total_tax();
+    }
+    return $total / $quantity;
+  }
+
+  /**
+   * Whether the prices on this order were shown with tax in them.
+   *
+   * Read from the order, because the live option is filtered by the current
+   * visitor's country: the same order reports a different amount depending on
+   * where whoever opens the thank-you page happens to be. Orders placed
+   * before this was recorded fall back to the option, which is what they
+   * already did.
+   *
+   * @param \WC_Order $order
+   *
+   * @return bool
+   */
+  public static function orderPricesIncludeTax(\WC_Order $order) {
+    $recorded = $order->get_meta(static::META_PRICES_INCLUDE_TAX, TRUE);
+    if ($recorded !== '' && $recorded !== NULL) {
+      return (bool) $recorded;
+    }
+    // Orders made outside the two checkouts — the admin, the REST API, a
+    // subscription renewal — carry no record. Answer once from the option and
+    // keep the answer, so the same order cannot report a different amount to
+    // the next visitor who opens it.
+    //
+    // Only the metadata is written. A full save() would fire the order
+    // lifecycle — woocommerce_update_order and everything listening to it,
+    // webhooks and ERP exports included — from a thank-you page render.
+    $incl = get_option('woocommerce_tax_display_cart') === 'incl';
+    $order->update_meta_data(static::META_PRICES_INCLUDE_TAX, $incl ? '1' : '0');
+    $order->save_meta_data();
+    return $incl;
+  }
+
+  /**
+   * Records the tax display in force when the order was placed.
+   *
+   * @implements woocommerce_checkout_create_order
+   */
+  public static function woocommerce_checkout_create_order($order) {
+    $order->update_meta_data(static::META_PRICES_INCLUDE_TAX, get_option('woocommerce_tax_display_cart') === 'incl' ? '1' : '0');
+  }
+
+  /**
+   * The same, for the block checkout, which does not build its order through
+   * WC_Checkout and so never fires the hook above.
+   *
+   * @implements woocommerce_store_api_checkout_update_order_meta
+   */
+  public static function woocommerce_store_api_checkout_update_order_meta($order) {
+    static::woocommerce_checkout_create_order($order);
+    $order->save();
+  }
+
+  /**
+   * What the order owes for its items, the way the cart events count it.
+   *
+   * Summed from the line totals rather than taken from the order total less
+   * shipping, which also carries tax in a net-display shop and any fee the
+   * gateway or the carrier added — amounts that appear in no item row, so the
+   * funnel would show a step that never happened.
+   *
+   * @param \WC_Order $order
+   *
+   * @return float
+   */
+  public static function getOrderItemsValue(\WC_Order $order) {
+    $incl = static::orderPricesIncludeTax($order);
+    $value = 0;
+    foreach ($order->get_items() as $order_item) {
+      // A composite bills through its container line while its components
+      // ride along priced at zero, so only what the line was actually
+      // charged counts.
+      $value += (float) $order_item->get_total() + ($incl ? (float) $order_item->get_total_tax() : 0);
+    }
+    return $value;
+  }
+
+  /**
+   * @see orderPricesIncludeTax()
+   */
+  public static function orderItemPricesIncludeTax($order_item) {
+    $order = $order_item->get_order();
+    return $order ? static::orderPricesIncludeTax($order) : get_option('woocommerce_tax_display_cart') === 'incl';
+  }
+
+  /**
+   * The variant label of a variation.
+   *
+   * Spelled exactly as getProductDetailsHtmlDataAttr() spells it for the
+   * purchase event, empty attributes included, or the two would disagree and
+   * the funnel would not join.
+   */
+  public static function getGa4ItemVariant(\WC_Product $product) {
+    if ($product->get_type() !== 'variation') {
+      return '';
+    }
+    $selected = array_map('trim', array_values($product->get_variation_attributes()));
+    return $selected ? strtolower(implode('-', $selected)) : '';
   }
 
   /**
@@ -395,7 +608,7 @@ class WooCommerce {
    * @return string
    *   hidden HTML div element with product details as data attributes.
    */
-  public static function getProductDetailsHtmlDataAttr(?\WC_Product $product, $is_detail_view = FALSE) {
+  public static function getProductDetailsHtmlDataAttr(?\WC_Product $product, $is_detail_view = FALSE, $unit_price = NULL) {
     if(!$product) {
       return '';
     }
@@ -403,20 +616,15 @@ class WooCommerce {
     $product_id = $product->get_id();
     $product_details = static::getProductDetails($product_id);
 
-    // For variations, override the name with the parent product name
-    if ($product->get_type() === 'variation') {
-      $parent_id = $product->get_parent_id();
-      if ($parent_id) {
-        $parent_product = wc_get_product($parent_id);
-        if ($parent_product) {
-          // Check for custom product name on parent, otherwise use parent's name
-          if (!$parent_name = get_post_meta($parent_id, Plugin::PREFIX . '_custom_product_name', TRUE)) {
-            $parent_name = str_replace(["'", '"'], '', wp_strip_all_tags($parent_product->get_name(), TRUE));
-          }
-          $product_details['name'] = $parent_name;
-        }
-      }
+    // What the customer was actually charged, when the caller knows it. The
+    // catalog price is not it: dynamic pricing and a VAT exemption both move
+    // the price of the line without touching the product.
+    if ($unit_price !== NULL) {
+      $product_details['price'] = number_format((float) $unit_price, wc_get_price_decimals(), '.', '');
     }
+
+    // For variations, override the name with the parent product name.
+    $product_details['name'] = static::getGa4ItemName($product, $product_details);
 
     if (($product->get_type() === 'variable' && $is_detail_view) || ($product->get_type() === 'variation' && !isset($product_details['variant']))) {
       $attributes = $product->get_variation_attributes();
@@ -474,7 +682,7 @@ class WooCommerce {
     $order_details = [
       'id' => $order->get_order_number(),
       'currency' => $order_data['currency'],
-      'revenue' => $order_data['total'] - $shipping_gross,
+      'revenue' => static::getOrderItemsValue($order),
       'tax' => $order_data['cart_tax'],
       'shipping' => $shipping_gross,
       'shipping_tax' => $order_data['shipping_tax'],
@@ -499,7 +707,7 @@ class WooCommerce {
 
     foreach ($order->get_items() as $order_item) {
       $product = $order_item->get_product();
-      $html .= str_replace('></div>', ' data-quantity="' . $order_item->get_quantity() . '"></div>', static::getProductDetailsHtmlDataAttr($product));
+      $html .= str_replace('></div>', ' data-quantity="' . $order_item->get_quantity() . '"></div>', static::getProductDetailsHtmlDataAttr($product, FALSE, static::getOrderItemUnitPrice($order_item)));
     }
 
     $html .= '<div id="shop-analytics-order-email" style="display:none;height:0;">' . $order_data['billing']['email'] . '</div>';

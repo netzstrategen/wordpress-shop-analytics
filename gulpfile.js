@@ -27,6 +27,10 @@ gulp.task('eslint', function() {
 gulp.task('scripts', function() {
   const task = gulp.src(srcScripts)
     .pipe(uglify({
+      // Keep 'use strict': the installed minifier drops it, which would
+      // silently move long-standing scripts into sloppy mode on the next
+      // rebuild of a file nobody meant to change that way.
+      compress: { directives: false },
       output: { beautify: false }
     }))
     .on('error', function(e){

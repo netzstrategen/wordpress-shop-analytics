@@ -38,9 +38,9 @@
       event: 'purchase',
       ecommerce: {
         transaction_id: orderId,
-        value: String(orderData.revenue).replace(/,/g, ''),
-        tax: String(orderData.tax).replace(/,/g, ''),
-        shipping: String(orderData.shipping).replace(/,/g, ''),
+        value: shopAnalytics.toAmount(orderData.revenue),
+        tax: shopAnalytics.toAmount(orderData.tax),
+        shipping: shopAnalytics.toAmount(orderData.shipping),
         order_count: orderCount,
         currency: orderData.currency,
         items: shopAnalytics.getProductsData($products)
@@ -51,6 +51,9 @@
       event_data.ecommerce.coupon = orderData.coupon;
     }
 
+    // Clears the previous ecommerce object, so items from an earlier event
+    // cannot leak into this one.
+    shopAnalytics.postToDataLayer({ecommerce: null});
     shopAnalytics.postToDataLayer(event_data);
   }
 

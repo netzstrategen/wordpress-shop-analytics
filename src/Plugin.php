@@ -58,6 +58,10 @@ class Plugin {
       add_action('woocommerce_shop_loop_item_title', __NAMESPACE__ . '\WooCommerce::addImpressionsProductDetailsHtmlDataAttr');
       add_action('woocommerce_single_product_summary', __NAMESPACE__ . '\WooCommerce::addSingleProductDetailsHtmlDataAttr');
       add_action('woocommerce_thankyou', __NAMESPACE__ . '\WooCommerce::addOrderDetailsHtmlDataAttr');
+      add_action('woocommerce_checkout_create_order', __NAMESPACE__ . '\WooCommerce::woocommerce_checkout_create_order');
+      // The Store API builds its order elsewhere, so the classic hook never
+      // runs for the block checkout.
+      add_action('woocommerce_store_api_checkout_update_order_meta', __NAMESPACE__ . '\WooCommerce::woocommerce_store_api_checkout_update_order_meta');
 
       // Elementor equivalent: Add a hidden HTML div element with product details as data attributes.
       if (is_plugin_active('ultimate-elementor/ultimate-elementor.php')) {
@@ -70,6 +74,10 @@ class Plugin {
 
       // Enqueue Google Analytics Data Layer related scripts.
       add_action('wp_enqueue_scripts', __CLASS__ . '::enqueueGaDataLayerScripts');
+
+      // The Cart and Checkout blocks need their own events; cart-checkout.js
+      // only reaches the shortcode flow.
+      BlockCheckout::init();
     }
   }
 
@@ -320,13 +328,13 @@ class Plugin {
       'order-received' => 80,
     ]);
 
-    wp_enqueue_script($handle . '_common', "$scripts/common.js", ['jquery'], FALSE, TRUE);
+    wp_enqueue_script($handle . '_common', "$scripts/common.js", ['jquery'], static::assetVersion($source, 'common'), TRUE);
     wp_localize_script($handle . '_common', Plugin::PREFIX . '_settings', [
       'tc_enabled' => (bool) get_option('shop_analytics_tc_enabled'),
       'datalayer_console_log' => (int) get_option('shop_analytics_datalayer_logging') ? 'on' : 'off',
       'track_add_to_cart_button' => (bool) get_option('shop_analytics_disable_track_add_to_cart_button') ? 'off' : 'on',
     ]);
-    wp_enqueue_script($handle . '_cart_checkout', "$scripts/cart-checkout.js", [$handle . '_common'], FALSE, TRUE);
+    wp_enqueue_script($handle . '_cart_checkout', "$scripts/cart-checkout.js", [$handle . '_common'], static::assetVersion($source, 'cart-checkout'), TRUE);
 
     if (is_cart() || is_checkout()) {
       if (is_cart()) {
@@ -351,7 +359,7 @@ class Plugin {
     }
 
     if (is_wc_endpoint_url()) {
-      wp_enqueue_script($handle . '_endpoints', "$scripts/endpoints.js", [$handle . '_common'], FALSE, TRUE);
+      wp_enqueue_script($handle . '_endpoints', "$scripts/endpoints.js", [$handle . '_common'], static::assetVersion($source, 'endpoints'), TRUE);
       // Inject woocoomerce endpoint identifier into frontend.
       foreach ($wc_endpoints as $endpoint => $order) {
         if (is_wc_endpoint_url($endpoint)) {
@@ -365,7 +373,7 @@ class Plugin {
     }
 
     if (is_product()) {
-      wp_enqueue_script($handle . '_product', "$scripts/product.js", [$handle . '_common'], FALSE, TRUE);
+      wp_enqueue_script($handle . '_product', "$scripts/product.js", [$handle . '_common'], static::assetVersion($source, 'product'), TRUE);
     }
   }
 
@@ -395,6 +403,73 @@ class Plugin {
    *
    * @return string
    */
+  /**
+   * Generates a version out of the current commit hash.
+   *
+   * Same idea as the other plugins here, with the repository root looked up
+   * instead of assumed: this is a Bedrock layout, so ABSPATH is web/wp/ and
+   * .git sits two levels above it. Falls back to the file's own timestamp,
+   * because an unversioned script is the one outcome to avoid — a browser
+   * holding a stale copy keeps reporting the old events after a fix ships.
+   *
+   * @param string $file
+   *   Absolute path of the asset, used when there is no repository to read.
+   *
+   * @return string|int|FALSE
+   */
+  /**
+   * The version of one datalayer script.
+   *
+   * @param string $source
+   *   '/assets' or '/dist', as the enqueue resolved it.
+   * @param string $name
+   *   Script basename without the extension.
+   *
+   * @return string|int|FALSE
+   */
+  public static function assetVersion($source, $name) {
+    return static::getAssetVersion(static::getBasePath() . $source . '/scripts/datalayer/' . $name . '.js');
+  }
+
+  public static function getAssetVersion($file = '') {
+    // While developing, the commit does not move between edits, so the file's
+    // own timestamp is the only thing that busts the browser cache.
+    if (defined('SCRIPT_DEBUG') && SCRIPT_DEBUG && $file && file_exists($file)) {
+      return filemtime($file);
+    }
+    static $git_version;
+    if (!isset($git_version)) {
+      $git_version = FALSE;
+      $directory = ABSPATH;
+      // The repository root is above ABSPATH, but not always by the same
+      // number of levels, so walk up rather than count.
+      for ($level = 0; $level < 4 && $directory && $directory !== '/'; $level++) {
+        if (is_dir($directory . '.git')) {
+          $head = @file_get_contents($directory . '.git/HEAD');
+          if ($head !== FALSE) {
+            $hash = trim($head);
+            if (strpos($hash, 'ref:') === 0) {
+              // A ref that cannot be read leaves no candidate at all. Taking
+              // the ref's own name would give a version that never changes
+              // between deploys, and a branch named like hex digits would
+              // pass for a commit.
+              $resolved = @file_get_contents($directory . '.git/' . trim(substr($hash, 5)));
+              $hash = $resolved !== FALSE ? trim($resolved) : '';
+            }
+            // A whole object name, not merely something starting like one.
+            $git_version = preg_match('/^[0-9a-f]{40}([0-9a-f]{24})?$/', $hash) ? substr($hash, 0, 8) : FALSE;
+          }
+          break;
+        }
+        $directory = trailingslashit(dirname(untrailingslashit($directory)));
+      }
+    }
+    if ($git_version) {
+      return $git_version;
+    }
+    return $file && file_exists($file) ? filemtime($file) : FALSE;
+  }
+
   public static function getBasePath() {
     return dirname(__DIR__);
   }
