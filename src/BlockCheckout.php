@@ -95,6 +95,7 @@ class BlockCheckout {
     // starts on init, by which time that action has already fired. init runs
     // on the Store API requests too, which is what has to see this.
     static::registerCartItemData();
+    static::registerCartData();
     add_action('wp_enqueue_scripts', __CLASS__ . '::enqueueScript', 20);
   }
 
@@ -109,6 +110,46 @@ class BlockCheckout {
       'schema_callback' => __CLASS__ . '::getCartItemSchema',
       'schema_type' => ARRAY_A,
     ]);
+  }
+
+  /**
+   * Adds cart-wide GA4 context to the Store API cart response.
+   */
+  public static function registerCartData() {
+    woocommerce_store_api_register_endpoint_data([
+      'endpoint' => \Automattic\WooCommerce\StoreApi\Schemas\V1\CartSchema::IDENTIFIER,
+      'namespace' => static::EXTENSION_NAMESPACE,
+      'data_callback' => __CLASS__ . '::getCartData',
+      'schema_callback' => __CLASS__ . '::getCartSchema',
+      'schema_type' => ARRAY_A,
+    ]);
+  }
+
+  /**
+   * Whether the prices in this response carry tax.
+   *
+   * Answered by the request that built the response, because the setting is
+   * filtered per country and cannot be decided when the page renders. The
+   * script cannot reliably infer it either: a line whose net and gross are
+   * equidistant from the quoted price is genuinely ambiguous.
+   */
+  public static function getCartData() {
+    return [
+      'prices_include_tax' => get_option('woocommerce_tax_display_cart') === 'incl',
+    ];
+  }
+
+  /**
+   * @see getCartData()
+   */
+  public static function getCartSchema() {
+    return [
+      'prices_include_tax' => [
+        'description' => __('Whether cart prices include tax, for Google Analytics.', Plugin::L10N),
+        'type' => 'boolean',
+        'readonly' => TRUE,
+      ],
+    ];
   }
 
   /**

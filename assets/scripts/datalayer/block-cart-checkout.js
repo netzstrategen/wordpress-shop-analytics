@@ -92,25 +92,25 @@
    * the cart item itself, so they match what the purchase event sends.
    */
   /**
-   * Whether the Store API is quoting prices with tax in them.
+   * Whether the prices in this response carry tax.
    *
-   * Read from the cart rather than from a setting decided when the page
-   * rendered: tax display varies by country and the Store API re-resolves it
-   * per request. The line subtotal is the same figure as price x quantity,
-   * so whichever of the two matches tells us which side we are on.
+   * Answered by the request that built the response. The setting is filtered
+   * per country, so it cannot be decided when the page renders, and it cannot
+   * be inferred either: a line whose net and gross sit equally far from the
+   * quoted price is genuinely ambiguous, and guessing it wrong turns every
+   * amount in the cart into the wrong one.
    */
   function pricesIncludeTax(cart) {
-    for (var i = 0; i < cart.items.length; i++) {
-      var item = cart.items[i];
-      var net = parseInt(item.totals.line_subtotal, 10);
-      var tax = parseInt(item.totals.line_subtotal_tax, 10);
-      if (!tax) {
-        continue;
-      }
-      var quoted = parseInt(item.prices.price, 10) * item.quantity;
-      return Math.abs(quoted - (net + tax)) <= Math.abs(quoted - net);
-    }
-    return false;
+    var extra = cart.extensions && cart.extensions[settings.namespace];
+    return !!(extra && extra.prices_include_tax);
+  }
+
+  /**
+   * What one line owes after its discounts, in minor units.
+   */
+  function lineTotal(item, inclTax) {
+    var t = item.totals;
+    return parseInt(t.line_total, 10) + (inclTax ? parseInt(t.line_total_tax, 10) : 0);
   }
 
   /**
@@ -119,9 +119,8 @@
   function lineDiscount(item, inclTax) {
     var t = item.totals;
     var before = parseInt(t.line_subtotal, 10) + (inclTax ? parseInt(t.line_subtotal_tax, 10) : 0);
-    var after = parseInt(t.line_total, 10) + (inclTax ? parseInt(t.line_total_tax, 10) : 0);
     var quantity = item.quantity || 1;
-    return Math.max(0, before - after) / quantity;
+    return Math.max(0, before - lineTotal(item, inclTax)) / quantity;
   }
 
   function buildItems(cart) {
@@ -168,12 +167,29 @@
   }
 
   function cartEcommerce(cart) {
-    var items = buildItems(cart);
     return {
       currency: cart.totals.currency_code,
-      value: itemsValue(items, cart.totals.currency_minor_unit),
-      items: items
+      value: cartValue(cart),
+      items: buildItems(cart)
     };
+  }
+
+  /**
+   * What the cart owes for its items, shipping excluded.
+   *
+   * Summed from the line totals, which is what the customer is actually
+   * charged, rather than from the per-unit prices. The two are different
+   * roundings and cannot always agree: WooCommerce rounds the line, GA4's
+   * item model rounds the unit, and a line discount that does not divide by
+   * its quantity has no exact per-unit form. The line is the one that has to
+   * be right, because it is the one the shop bills.
+   */
+  function cartValue(cart) {
+    var inclTax = pricesIncludeTax(cart);
+    var sum = cart.items.reduce(function (total, item) {
+      return total + lineTotal(item, inclTax);
+    }, 0);
+    return amount(sum, cart.totals.currency_minor_unit);
   }
 
   /**
@@ -186,14 +202,6 @@
    * also means the value follows whatever tax display the Store API applied,
    * with nothing to keep in step on this side.
    */
-  function itemsValue(items, minorUnit) {
-    var unit = decimals(minorUnit);
-    var sum = items.reduce(function (total, item) {
-      return total + (item.price - (item.discount || 0)) * item.quantity;
-    }, 0);
-    return parseFloat(sum.toFixed(unit));
-  }
-
   /**
    * The short, fixed name for a gateway, falling back to its id.
    */
@@ -346,9 +354,10 @@
     else {
       removedItems(seen.items, cart).forEach(function (gone) {
         var unit = decimals(gone.minorUnit);
+        var net = (gone.item.price - (gone.item.discount || 0)) * gone.item.quantity;
         push('remove_from_cart', {
           currency: cart.totals.currency_code,
-          value: parseFloat((gone.item.price * gone.item.quantity).toFixed(unit)),
+          value: parseFloat(net.toFixed(unit)),
           items: [gone.item]
         });
       });

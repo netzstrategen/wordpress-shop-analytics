@@ -222,6 +222,27 @@ class WooCommerce {
   }
 
   /**
+   * What the order owes for its items, the way the cart events count it.
+   *
+   * Summed from the line totals rather than taken from the order total less
+   * shipping, which also carries tax in a net-display shop and any fee the
+   * gateway or the carrier added — amounts that appear in no item row, so the
+   * funnel would show a step that never happened.
+   *
+   * @param \WC_Order $order
+   *
+   * @return float
+   */
+  public static function getOrderItemsValue(\WC_Order $order) {
+    $incl = get_option('woocommerce_tax_display_cart') === 'incl';
+    $value = 0;
+    foreach ($order->get_items() as $order_item) {
+      $value += (float) $order_item->get_total() + ($incl ? (float) $order_item->get_total_tax() : 0);
+    }
+    return $value;
+  }
+
+  /**
    * The discount on an order line, per unit.
    *
    * The difference between what the line would have cost and what it did,
@@ -614,7 +635,7 @@ class WooCommerce {
     $order_details = [
       'id' => $order->get_order_number(),
       'currency' => $order_data['currency'],
-      'revenue' => $order_data['total'] - $shipping_gross,
+      'revenue' => static::getOrderItemsValue($order),
       'tax' => $order_data['cart_tax'],
       'shipping' => $shipping_gross,
       'shipping_tax' => $order_data['shipping_tax'],
