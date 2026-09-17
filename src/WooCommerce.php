@@ -13,6 +13,11 @@ namespace Netzstrategen\ShopAnalytics;
 class WooCommerce {
 
   /**
+   * Order meta recording the tax display the checkout used.
+   */
+  const META_PRICES_INCLUDE_TAX = '_shop_analytics_prices_include_tax';
+
+  /**
    * Retrieves the current page type.
    *
    * @param int $post_id
@@ -215,10 +220,51 @@ class WooCommerce {
       $quantity = 1;
     }
     $subtotal = (float) $order_item->get_subtotal();
-    if (get_option('woocommerce_tax_display_cart') === 'incl') {
+    if (static::orderItemPricesIncludeTax($order_item)) {
       $subtotal += (float) $order_item->get_subtotal_tax();
     }
     return $subtotal / $quantity;
+  }
+
+  /**
+   * Whether the prices on this order were shown with tax in them.
+   *
+   * Read from the order, because the live option is filtered by the current
+   * visitor's country: the same order reports a different amount depending on
+   * where whoever opens the thank-you page happens to be. Orders placed
+   * before this was recorded fall back to the option, which is what they
+   * already did.
+   *
+   * @param \WC_Order $order
+   *
+   * @return bool
+   */
+  public static function orderPricesIncludeTax(\WC_Order $order) {
+    $recorded = $order->get_meta(static::META_PRICES_INCLUDE_TAX, TRUE);
+    if ($recorded !== '' && $recorded !== NULL) {
+      return (bool) $recorded;
+    }
+    return get_option('woocommerce_tax_display_cart') === 'incl';
+  }
+
+  /**
+   * Records the tax display in force when the order was placed.
+   *
+   * @implements woocommerce_checkout_create_order
+   */
+  public static function woocommerce_checkout_create_order($order) {
+    $order->update_meta_data(static::META_PRICES_INCLUDE_TAX, get_option('woocommerce_tax_display_cart') === 'incl' ? '1' : '0');
+  }
+
+  /**
+   * The same, for the block checkout, which does not build its order through
+   * WC_Checkout and so never fires the hook above.
+   *
+   * @implements woocommerce_store_api_checkout_update_order_meta
+   */
+  public static function woocommerce_store_api_checkout_update_order_meta($order) {
+    static::woocommerce_checkout_create_order($order);
+    $order->save();
   }
 
   /**
@@ -234,7 +280,7 @@ class WooCommerce {
    * @return float
    */
   public static function getOrderItemsValue(\WC_Order $order) {
-    $incl = get_option('woocommerce_tax_display_cart') === 'incl';
+    $incl = static::orderPricesIncludeTax($order);
     $value = 0;
     foreach ($order->get_items() as $order_item) {
       $value += (float) $order_item->get_total() + ($incl ? (float) $order_item->get_total_tax() : 0);
@@ -257,10 +303,18 @@ class WooCommerce {
     if ($quantity <= 0) {
       $quantity = 1;
     }
-    $incl = get_option('woocommerce_tax_display_cart') === 'incl';
+    $incl = static::orderItemPricesIncludeTax($order_item);
     $before = (float) $order_item->get_subtotal() + ($incl ? (float) $order_item->get_subtotal_tax() : 0);
     $after = (float) $order_item->get_total() + ($incl ? (float) $order_item->get_total_tax() : 0);
     return max(0, $before - $after) / $quantity;
+  }
+
+  /**
+   * @see orderPricesIncludeTax()
+   */
+  public static function orderItemPricesIncludeTax($order_item) {
+    $order = $order_item->get_order();
+    return $order ? static::orderPricesIncludeTax($order) : get_option('woocommerce_tax_display_cart') === 'incl';
   }
 
   /**

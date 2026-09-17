@@ -41,6 +41,13 @@
    * Whether every item carries this plugin's Store API data.
    */
   function identified(cart) {
+    // The cart's own answer on tax has to be there too. A snapshot stored by
+    // an older version carries the item data but not this, and reading its
+    // absence as "no tax" reports a net value beside gross prices.
+    var cartExtra = cart.extensions && cart.extensions[settings.namespace];
+    if (!cartExtra || typeof cartExtra.prices_include_tax !== 'boolean') {
+      return false;
+    }
     return cart.items.every(function (item) {
       var extra = item.extensions && item.extensions[settings.namespace];
       // The tracking id itself, not merely the namespace: an empty object
@@ -64,6 +71,18 @@
       // store change reports what it has.
       seen.refetched = true;
     }
+  }
+
+  /**
+   * A per-unit share of a line amount, in currency units.
+   *
+   * Rounded far enough that multiplying it back by the quantity returns the
+   * line it came from. The currency's own precision is not enough: a share
+   * smaller than one minor unit would round to nothing.
+   */
+  function perUnit(minorUnits, minorUnit) {
+    var unit = decimals(minorUnit) + 4;
+    return parseFloat((minorUnits / Math.pow(10, decimals(minorUnit))).toFixed(unit));
   }
 
   /**
@@ -146,10 +165,13 @@
         built.item_variant = extra.item_variant;
       }
       // A coupon reduces what the line costs without changing the product's
-      // price, which is what GA4 keeps discount for.
+      // price, which is what GA4 keeps discount for. Carried at whatever
+      // precision the per-unit share needs: four cents off ten units is
+      // 0.004 each, and rounding that to the currency loses the discount
+      // entirely while value still reports it.
       var discount = lineDiscount(item, inclTax);
       if (discount > 0) {
-        built.discount = amount(discount, item.prices.currency_minor_unit);
+        built.discount = perUnit(discount, item.prices.currency_minor_unit);
       }
       return built;
     });
@@ -336,9 +358,15 @@
       // items would be reported by product id instead of the tracking id the
       // purchase event uses, and the first event cannot be taken back, so
       // fetch the cart once and wait for the answer.
-      if (!identified(cart) && !seen.refetched) {
-        seen.refetched = true;
-        refetchCart();
+      if (!identified(cart)) {
+        if (!seen.refetched) {
+          seen.refetched = true;
+          refetchCart();
+          return;
+        }
+        // The refresh did not bring it either, so nothing here can be priced
+        // honestly. Reporting a guessed amount is worse than reporting none.
+        seen.entered = true;
         return;
       }
       seen.entered = true;

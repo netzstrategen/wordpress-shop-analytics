@@ -58,6 +58,10 @@ class Plugin {
       add_action('woocommerce_shop_loop_item_title', __NAMESPACE__ . '\WooCommerce::addImpressionsProductDetailsHtmlDataAttr');
       add_action('woocommerce_single_product_summary', __NAMESPACE__ . '\WooCommerce::addSingleProductDetailsHtmlDataAttr');
       add_action('woocommerce_thankyou', __NAMESPACE__ . '\WooCommerce::addOrderDetailsHtmlDataAttr');
+      add_action('woocommerce_checkout_create_order', __NAMESPACE__ . '\WooCommerce::woocommerce_checkout_create_order');
+      // The Store API builds its order elsewhere, so the classic hook never
+      // runs for the block checkout.
+      add_action('woocommerce_store_api_checkout_update_order_meta', __NAMESPACE__ . '\WooCommerce::woocommerce_store_api_checkout_update_order_meta');
 
       // Elementor equivalent: Add a hidden HTML div element with product details as data attributes.
       if (is_plugin_active('ultimate-elementor/ultimate-elementor.php')) {
