@@ -125,25 +125,14 @@
     return !!(extra && extra.prices_include_tax);
   }
 
-  /**
-   * What one line owes after its discounts, in minor units.
-   */
-  function lineTotal(item, inclTax) {
-    var t = item.totals;
-    return parseInt(t.line_total, 10) + (inclTax ? parseInt(t.line_total_tax, 10) : 0);
-  }
-
   function buildItems(cart) {
     var inclTax = pricesIncludeTax(cart);
     return cart.items.map(function (item, position) {
       var extra = (item.extensions && item.extensions[settings.namespace]) || {};
-      // GA4 counts item revenue as price x quantity and does not subtract
-      // discount, so price has to be what the unit was actually paid at.
-      var paid = lineTotal(item, inclTax) / (item.quantity || 1);
       var built = {
         item_id: String(extra.item_id || item.id),
         item_name: extra.item_name || item.name,
-        price: perUnit(paid, item.prices.currency_minor_unit),
+        price: amount(item.prices.price, item.prices.currency_minor_unit),
         quantity: item.quantity,
         index: position + 1
       };
@@ -182,19 +171,20 @@
   /**
    * What the cart owes for its items, shipping excluded.
    *
-   * Summed from the line totals, which is what the customer is actually
-   * charged, rather than from the per-unit prices. The two are different
-   * roundings and cannot always agree: WooCommerce rounds the line, GA4's
-   * item model rounds the unit, and a line discount that does not divide by
-   * its quantity has no exact per-unit form. The line is the one that has to
-   * be right, because it is the one the shop bills.
+   * Taken from the cart's own item total rather than summed from the lines.
+   * A composite bills through its container line and its components ride
+   * along at their own prices, so adding the lines up counts the whole
+   * configuration twice — a 70.00 lamp came out at 140.00. WooCommerce has
+   * already resolved that, and the discount it reports separately.
    */
   function cartValue(cart) {
+    var t = cart.totals;
     var inclTax = pricesIncludeTax(cart);
-    var sum = cart.items.reduce(function (total, item) {
-      return total + lineTotal(item, inclTax);
-    }, 0);
-    return amount(sum, cart.totals.currency_minor_unit);
+    var value = parseInt(t.total_items, 10) - parseInt(t.total_discount, 10);
+    if (inclTax) {
+      value += parseInt(t.total_items_tax, 10) - parseInt(t.total_discount_tax, 10);
+    }
+    return amount(value, t.currency_minor_unit);
   }
 
   /**

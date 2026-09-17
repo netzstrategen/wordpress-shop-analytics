@@ -297,6 +297,9 @@ class WooCommerce {
     $incl = static::orderPricesIncludeTax($order);
     $value = 0;
     foreach ($order->get_items() as $order_item) {
+      // A composite bills through its container line while its components
+      // ride along priced at zero, so only what the line was actually
+      // charged counts.
       $value += (float) $order_item->get_total() + ($incl ? (float) $order_item->get_total_tax() : 0);
     }
     return $value;
