@@ -82,21 +82,8 @@
    * smaller than one minor unit would round to nothing.
    */
   function perUnit(minorUnits, minorUnit) {
-    return parseFloat((minorUnits / Math.pow(10, decimals(minorUnit))).toFixed(precision(minorUnit)));
-  }
-
-  /**
-   * Decimals for a per-unit amount.
-   *
-   * Six beyond the currency: a share smaller than a minor unit has to
-   * survive, and what the rounding leaves over, times the largest quantity
-   * the Store API accepts, stays below half a minor unit. An exact identity
-   * is not reachable — a share that repeats, a cent across three units, has
-   * no finite decimal form — so value follows the line the shop bills and
-   * this keeps the item rows within a fraction of a cent of it.
-   */
-  function precision(minorUnit) {
-    return decimals(minorUnit) + 6;
+    var unit = decimals(minorUnit);
+    return parseFloat((minorUnits / Math.pow(10, unit)).toFixed(unit));
   }
 
   /**
@@ -146,16 +133,6 @@
     return parseInt(t.line_total, 10) + (inclTax ? parseInt(t.line_total_tax, 10) : 0);
   }
 
-  /**
-   * The discount on one line, per unit, in minor units.
-   */
-  function lineDiscount(item, inclTax) {
-    var t = item.totals;
-    var before = parseInt(t.line_subtotal, 10) + (inclTax ? parseInt(t.line_subtotal_tax, 10) : 0);
-    var quantity = item.quantity || 1;
-    return Math.max(0, before - lineTotal(item, inclTax)) / quantity;
-  }
-
   function buildItems(cart) {
     var inclTax = pricesIncludeTax(cart);
     return cart.items.map(function (item, position) {
@@ -178,13 +155,6 @@
       }
       if (extra.item_variant) {
         built.item_variant = extra.item_variant;
-      }
-      // What the unit was marked down by, which GA4 reports beside the price
-      // rather than deducting from it. Carried at whatever precision the
-      // per-unit share needs: four cents off ten units is 0.004 each.
-      var discount = lineDiscount(item, inclTax);
-      if (discount > 0) {
-        built.discount = perUnit(discount, item.prices.currency_minor_unit);
       }
       return built;
     });
@@ -228,14 +198,10 @@
   }
 
   /**
-   * The paid amount of an item row, the way GA4 reads it.
-   *
-   * Kept at the price's own precision rather than the currency's: one unit of
-   * a 68.996 line is 68.996, and rounding it to 69.00 would report more than
-   * the row it ships with.
+   * The paid amount of an item row.
    */
   function itemValue(item, minorUnit) {
-    return parseFloat((item.price * item.quantity).toFixed(precision(minorUnit)));
+    return parseFloat((item.price * item.quantity).toFixed(decimals(minorUnit)));
   }
 
   /**

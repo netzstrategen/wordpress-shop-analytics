@@ -303,27 +303,6 @@ class WooCommerce {
   }
 
   /**
-   * The discount on an order line, per unit.
-   *
-   * The difference between what the line would have cost and what it did,
-   * matching the per-item discount the cart and checkout events report.
-   *
-   * @param \WC_Order_Item_Product $order_item
-   *
-   * @return float
-   */
-  public static function getOrderItemUnitDiscount($order_item) {
-    $quantity = (float) $order_item->get_quantity();
-    if ($quantity <= 0) {
-      $quantity = 1;
-    }
-    $incl = static::orderItemPricesIncludeTax($order_item);
-    $before = (float) $order_item->get_subtotal() + ($incl ? (float) $order_item->get_subtotal_tax() : 0);
-    $after = (float) $order_item->get_total() + ($incl ? (float) $order_item->get_total_tax() : 0);
-    return max(0, $before - $after) / $quantity;
-  }
-
-  /**
    * @see orderPricesIncludeTax()
    */
   public static function orderItemPricesIncludeTax($order_item) {
@@ -626,7 +605,7 @@ class WooCommerce {
    * @return string
    *   hidden HTML div element with product details as data attributes.
    */
-  public static function getProductDetailsHtmlDataAttr(?\WC_Product $product, $is_detail_view = FALSE, $unit_price = NULL, $unit_discount = 0) {
+  public static function getProductDetailsHtmlDataAttr(?\WC_Product $product, $is_detail_view = FALSE, $unit_price = NULL) {
     if(!$product) {
       return '';
     }
@@ -637,16 +616,8 @@ class WooCommerce {
     // What the customer was actually charged, when the caller knows it. The
     // catalog price is not it: dynamic pricing and a VAT exemption both move
     // the price of the line without touching the product.
-    // Six decimals beyond the currency. A per-unit share smaller than a minor
-    // unit has to survive — four cents over ten units is 0.004 each — and the
-    // rounding error left over, multiplied by the largest quantity the Store
-    // API accepts, stays below half a minor unit.
-    $precision = wc_get_price_decimals() + 6;
     if ($unit_price !== NULL) {
-      $product_details['price'] = rtrim(rtrim(number_format((float) $unit_price, $precision, '.', ''), '0'), '.');
-    }
-    if ($unit_discount) {
-      $product_details['discount'] = rtrim(rtrim(number_format((float) $unit_discount, $precision, '.', ''), '0'), '.');
+      $product_details['price'] = number_format((float) $unit_price, wc_get_price_decimals(), '.', '');
     }
 
     // For variations, override the name with the parent product name.
@@ -733,7 +704,7 @@ class WooCommerce {
 
     foreach ($order->get_items() as $order_item) {
       $product = $order_item->get_product();
-      $html .= str_replace('></div>', ' data-quantity="' . $order_item->get_quantity() . '"></div>', static::getProductDetailsHtmlDataAttr($product, FALSE, static::getOrderItemUnitPrice($order_item), static::getOrderItemUnitDiscount($order_item)));
+      $html .= str_replace('></div>', ' data-quantity="' . $order_item->get_quantity() . '"></div>', static::getProductDetailsHtmlDataAttr($product, FALSE, static::getOrderItemUnitPrice($order_item)));
     }
 
     $html .= '<div id="shop-analytics-order-email" style="display:none;height:0;">' . $order_data['billing']['email'] . '</div>';
