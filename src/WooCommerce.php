@@ -251,9 +251,13 @@ class WooCommerce {
     // subscription renewal — carry no record. Answer once from the option and
     // keep the answer, so the same order cannot report a different amount to
     // the next visitor who opens it.
+    //
+    // Only the metadata is written. A full save() would fire the order
+    // lifecycle — woocommerce_update_order and everything listening to it,
+    // webhooks and ERP exports included — from a thank-you page render.
     $incl = get_option('woocommerce_tax_display_cart') === 'incl';
     $order->update_meta_data(static::META_PRICES_INCLUDE_TAX, $incl ? '1' : '0');
-    $order->save();
+    $order->save_meta_data();
     return $incl;
   }
 
@@ -633,10 +637,11 @@ class WooCommerce {
     // What the customer was actually charged, when the caller knows it. The
     // catalog price is not it: dynamic pricing and a VAT exemption both move
     // the price of the line without touching the product.
-    // Four decimals beyond the currency, so a per-unit share smaller than a
-    // minor unit survives: four cents over ten units is 0.004 each, and
-    // rounding it to the currency would erase it.
-    $precision = wc_get_price_decimals() + 4;
+    // Six decimals beyond the currency. A per-unit share smaller than a minor
+    // unit has to survive — four cents over ten units is 0.004 each — and the
+    // rounding error left over, multiplied by the largest quantity the Store
+    // API accepts, stays below half a minor unit.
+    $precision = wc_get_price_decimals() + 6;
     if ($unit_price !== NULL) {
       $product_details['price'] = rtrim(rtrim(number_format((float) $unit_price, $precision, '.', ''), '0'), '.');
     }

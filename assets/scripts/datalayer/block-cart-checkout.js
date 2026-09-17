@@ -82,8 +82,21 @@
    * smaller than one minor unit would round to nothing.
    */
   function perUnit(minorUnits, minorUnit) {
-    var unit = decimals(minorUnit) + 4;
-    return parseFloat((minorUnits / Math.pow(10, decimals(minorUnit))).toFixed(unit));
+    return parseFloat((minorUnits / Math.pow(10, decimals(minorUnit))).toFixed(precision(minorUnit)));
+  }
+
+  /**
+   * Decimals for a per-unit amount.
+   *
+   * Six beyond the currency: a share smaller than a minor unit has to
+   * survive, and what the rounding leaves over, times the largest quantity
+   * the Store API accepts, stays below half a minor unit. An exact identity
+   * is not reachable — a share that repeats, a cent across three units, has
+   * no finite decimal form — so value follows the line the shop bills and
+   * this keeps the item rows within a fraction of a cent of it.
+   */
+  function precision(minorUnit) {
+    return decimals(minorUnit) + 6;
   }
 
   /**
@@ -216,9 +229,13 @@
 
   /**
    * The paid amount of an item row, the way GA4 reads it.
+   *
+   * Kept at the price's own precision rather than the currency's: one unit of
+   * a 68.996 line is 68.996, and rounding it to 69.00 would report more than
+   * the row it ships with.
    */
   function itemValue(item, minorUnit) {
-    return parseFloat((item.price * item.quantity).toFixed(decimals(minorUnit)));
+    return parseFloat((item.price * item.quantity).toFixed(precision(minorUnit)));
   }
 
   /**
