@@ -28,6 +28,52 @@ class BlockCheckout {
   const EXTENSION_NAMESPACE = 'shop-analytics';
 
   /**
+   * Payment gateway id to the short, fixed name analytics reports (ID-993).
+   *
+   * The gateway titles are marketing copy and change whenever someone edits a
+   * label, so they cannot be the dimension. An id that is not listed reports
+   * itself, which is ugly in a report but never silently wrong.
+   */
+  const PAYMENT_TYPES = [
+    'ppcp-gateway' => 'paypal',
+    'ppcp-gateway-paypal' => 'paypal',
+    'ppcp-gateway-paylater' => 'paypal-later',
+    'ppcp-gateway-card' => 'kreditkarte',
+    'ppcp-card-button-gateway' => 'kreditkarte',
+    'ppcp-credit-card-gateway' => 'kreditkarte',
+    'stripe' => 'kreditkarte',
+    'stripe_klarna' => 'klarna',
+    'stripe_link' => 'link',
+    'stripe_sepa_debit' => 'lastschrift',
+    'german_market_sepa_direct_debit' => 'lastschrift',
+    'german_market_purchase_on_account' => 'rechnung',
+    'bacs' => 'vorkasse',
+    'cod' => 'nachnahme',
+    'cheque' => 'scheck',
+    'amazon_payments_advanced' => 'amazon',
+    'amazon_payments_advanced_express' => 'amazon',
+    'stripe_amazon_pay' => 'amazon',
+  ];
+
+  /**
+   * Shipping method label to the short, fixed tier analytics reports (ID-993).
+   *
+   * Matched in order, on a lowercased label, because the shop's own labels are
+   * long and vary by zone. Sperrgut comes before the carrier: "Sperrgut-Versand
+   * mit der Schweizer Post" is bulky freight first. An unmatched label reports
+   * itself.
+   */
+  const SHIPPING_TIERS = [
+    'sperrgut' => 'Sperrgut',
+    'spedition' => 'Spedition',
+    'schweizer post' => 'Schweizer Post',
+    'abholung' => 'Abholung',
+    'paket' => 'Paketversand',
+    'kostenlose' => 'Kostenloser Versand',
+    'versandkostenpauschale' => 'Pauschale',
+  ];
+
+  /**
    * @implements init
    */
   public static function init() {
@@ -110,6 +156,10 @@ class BlockCheckout {
     wp_localize_script($handle . '_block_cart_checkout', Plugin::PREFIX . '_block_data', [
       'page' => is_checkout() ? 'checkout' : 'cart',
       'namespace' => static::EXTENSION_NAMESPACE,
+      'payment_types' => static::PAYMENT_TYPES,
+      'shipping_tiers' => static::SHIPPING_TIERS,
+      // Item prices follow this setting, so the event value has to as well.
+      'prices_incl_tax' => get_option('woocommerce_tax_display_cart') === 'incl',
     ]);
   }
 

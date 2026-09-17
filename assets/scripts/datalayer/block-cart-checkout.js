@@ -130,10 +130,46 @@
   function cartEcommerce(cart) {
     return {
       currency: cart.totals.currency_code,
-      // The gross cart total, as the ticket specifies.
-      value: amount(cart.totals.total_price, cart.totals.currency_minor_unit),
+      value: itemsValue(cart.totals),
       items: buildItems(cart)
     };
+  }
+
+  /**
+   * What the items cost, shipping excluded.
+   *
+   * Tax is included only when the shop displays it that way, because the
+   * per-item prices follow the same setting and value has to agree with them.
+   */
+  function itemsValue(totals) {
+    var net = parseInt(totals.total_items, 10);
+    if (settings.prices_incl_tax) {
+      net += parseInt(totals.total_items_tax, 10);
+    }
+    return amount(net, totals.currency_minor_unit);
+  }
+
+  /**
+   * The short, fixed name for a gateway, falling back to its id.
+   */
+  function paymentType(id) {
+    var map = settings.payment_types || {};
+    return Object.prototype.hasOwnProperty.call(map, id) ? map[id] : id;
+  }
+
+  /**
+   * The short, fixed tier for a shipping label, falling back to the label.
+   */
+  function shippingTier(label) {
+    var map = settings.shipping_tiers || {};
+    var haystack = String(label).toLowerCase();
+    var keys = Object.keys(map);
+    for (var i = 0; i < keys.length; i++) {
+      if (haystack.indexOf(keys[i]) !== -1) {
+        return map[keys[i]];
+      }
+    }
+    return label;
   }
 
   function couponCodes(cart) {
@@ -155,7 +191,7 @@
     (cart.shippingRates || []).forEach(function (packageRates) {
       (packageRates.shipping_rates || []).forEach(function (rate) {
         if (rate.selected) {
-          chosen.push({pkg: String(packageRates.package_id), rate: rate.rate_id, name: decode(rate.name)});
+          chosen.push({pkg: String(packageRates.package_id), rate: rate.rate_id, name: shippingTier(decode(rate.name))});
         }
       });
     });
@@ -167,10 +203,10 @@
     chosen.sort(function (a, b) {
       return a.pkg < b.pkg ? -1 : (a.pkg > b.pkg ? 1 : 0);
     });
-    return {
-      id: chosen.map(function (c) { return c.pkg + ':' + c.rate; }).join('|'),
-      tier: chosen.map(function (c) { return c.name; }).join(', ')
-    };
+    // Identified by the tier it reports, not by rate id: switching between two
+    // rates of the same tier would otherwise fire the same value twice.
+    var tier = chosen.map(function (c) { return c.name; }).join(', ');
+    return {id: tier, tier: tier};
   }
 
   /**
@@ -296,6 +332,7 @@
     if (shippingChoice && shippingChoice.id !== seen.shippingId) {
       seen.shippingId = shippingChoice.id;
       var shipping = cartEcommerce(cart);
+      shipping.coupon = couponCodes(cart);
       shipping.shipping_tier = shippingChoice.tier;
       push('add_shipping_info', shipping);
     }
@@ -321,7 +358,10 @@
   }
 
   function reportPayment(cart) {
-    var payment = activePaymentMethod();
+    var active = activePaymentMethod();
+    // Compared as the name that gets reported: two gateways sharing one name
+    // are one value, and the checkout re-resolves often.
+    var payment = active ? paymentType(active) : null;
     if (!payment || payment === seen.paymentType) {
       return;
     }
@@ -345,6 +385,7 @@
 
     seen.paymentType = payment;
     var paying = cartEcommerce(cart);
+    paying.coupon = couponCodes(cart);
     paying.payment_type = payment;
     push('add_payment_info', paying);
   }
