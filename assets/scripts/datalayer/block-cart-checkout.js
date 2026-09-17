@@ -128,25 +128,30 @@
   }
 
   function cartEcommerce(cart) {
+    var items = buildItems(cart);
     return {
       currency: cart.totals.currency_code,
-      value: itemsValue(cart.totals),
-      items: buildItems(cart)
+      value: itemsValue(items, cart.totals.currency_minor_unit),
+      items: items
     };
   }
 
   /**
    * What the items cost, shipping excluded.
    *
-   * Tax is included only when the shop displays it that way, because the
-   * per-item prices follow the same setting and value has to agree with them.
+   * Summed from the very prices this event reports, not from the cart's own
+   * item total. Those are two different roundings — the total rounds the
+   * line, the price rounds the unit — so a cart of 3 at 11.665 reports items
+   * adding up to 35.01 against a total of 35.00. Summing the reported prices
+   * also means the value follows whatever tax display the Store API applied,
+   * with nothing to keep in step on this side.
    */
-  function itemsValue(totals) {
-    var net = parseInt(totals.total_items, 10);
-    if (settings.prices_incl_tax) {
-      net += parseInt(totals.total_items_tax, 10);
-    }
-    return amount(net, totals.currency_minor_unit);
+  function itemsValue(items, minorUnit) {
+    var unit = decimals(minorUnit);
+    var sum = items.reduce(function (total, item) {
+      return total + item.price * item.quantity;
+    }, 0);
+    return parseFloat(sum.toFixed(unit));
   }
 
   /**

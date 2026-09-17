@@ -53,6 +53,13 @@ class BlockCheckout {
     'amazon_payments_advanced' => 'amazon',
     'amazon_payments_advanced_express' => 'amazon',
     'stripe_amazon_pay' => 'amazon',
+    // The Blocks registration names Stripe's express methods differently from
+    // its backend gateway ids, and it is the registration name that reaches
+    // the data store.
+    'express_checkout_element_applePay' => 'apple-pay',
+    'express_checkout_element_googlePay' => 'google-pay',
+    'express_checkout_element_amazonPay' => 'amazon',
+    'express_checkout_element_link' => 'link',
   ];
 
   /**
@@ -158,8 +165,6 @@ class BlockCheckout {
       'namespace' => static::EXTENSION_NAMESPACE,
       'payment_types' => static::PAYMENT_TYPES,
       'shipping_tiers' => static::SHIPPING_TIERS,
-      // Item prices follow this setting, so the event value has to as well.
-      'prices_incl_tax' => get_option('woocommerce_tax_display_cart') === 'incl',
     ]);
   }
 
