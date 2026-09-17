@@ -219,11 +219,14 @@ class WooCommerce {
     if ($quantity <= 0) {
       $quantity = 1;
     }
-    $subtotal = (float) $order_item->get_subtotal();
+    // What the unit was paid at. GA4 counts item revenue as price times
+    // quantity and does not deduct discount, so the price it is given has to
+    // be the one the money followed.
+    $total = (float) $order_item->get_total();
     if (static::orderItemPricesIncludeTax($order_item)) {
-      $subtotal += (float) $order_item->get_subtotal_tax();
+      $total += (float) $order_item->get_total_tax();
     }
-    return $subtotal / $quantity;
+    return $total / $quantity;
   }
 
   /**
@@ -244,7 +247,14 @@ class WooCommerce {
     if ($recorded !== '' && $recorded !== NULL) {
       return (bool) $recorded;
     }
-    return get_option('woocommerce_tax_display_cart') === 'incl';
+    // Orders made outside the two checkouts — the admin, the REST API, a
+    // subscription renewal — carry no record. Answer once from the option and
+    // keep the answer, so the same order cannot report a different amount to
+    // the next visitor who opens it.
+    $incl = get_option('woocommerce_tax_display_cart') === 'incl';
+    $order->update_meta_data(static::META_PRICES_INCLUDE_TAX, $incl ? '1' : '0');
+    $order->save();
+    return $incl;
   }
 
   /**
@@ -623,11 +633,15 @@ class WooCommerce {
     // What the customer was actually charged, when the caller knows it. The
     // catalog price is not it: dynamic pricing and a VAT exemption both move
     // the price of the line without touching the product.
+    // Four decimals beyond the currency, so a per-unit share smaller than a
+    // minor unit survives: four cents over ten units is 0.004 each, and
+    // rounding it to the currency would erase it.
+    $precision = wc_get_price_decimals() + 4;
     if ($unit_price !== NULL) {
-      $product_details['price'] = number_format((float) $unit_price, wc_get_price_decimals(), '.', '');
+      $product_details['price'] = rtrim(rtrim(number_format((float) $unit_price, $precision, '.', ''), '0'), '.');
     }
     if ($unit_discount) {
-      $product_details['discount'] = number_format((float) $unit_discount, wc_get_price_decimals(), '.', '');
+      $product_details['discount'] = rtrim(rtrim(number_format((float) $unit_discount, $precision, '.', ''), '0'), '.');
     }
 
     // For variations, override the name with the parent product name.

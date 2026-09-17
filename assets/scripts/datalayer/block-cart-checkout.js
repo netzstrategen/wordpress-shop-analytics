@@ -22,6 +22,7 @@
   // cheap to ignore and nothing is pushed twice.
   var seen = {
     entered: false,
+    disabled: false,
     refetched: false,
     items: null,
     shippingId: null,
@@ -146,12 +147,13 @@
     var inclTax = pricesIncludeTax(cart);
     return cart.items.map(function (item, position) {
       var extra = (item.extensions && item.extensions[settings.namespace]) || {};
+      // GA4 counts item revenue as price x quantity and does not subtract
+      // discount, so price has to be what the unit was actually paid at.
+      var paid = lineTotal(item, inclTax) / (item.quantity || 1);
       var built = {
         item_id: String(extra.item_id || item.id),
         item_name: extra.item_name || item.name,
-        // The Store API price is the one this cart line actually costs.
-        // Composites and bundles change it, so the catalog price would lie.
-        price: amount(item.prices.price, item.prices.currency_minor_unit),
+        price: perUnit(paid, item.prices.currency_minor_unit),
         quantity: item.quantity,
         index: position + 1
       };
@@ -164,11 +166,9 @@
       if (extra.item_variant) {
         built.item_variant = extra.item_variant;
       }
-      // A coupon reduces what the line costs without changing the product's
-      // price, which is what GA4 keeps discount for. Carried at whatever
-      // precision the per-unit share needs: four cents off ten units is
-      // 0.004 each, and rounding that to the currency loses the discount
-      // entirely while value still reports it.
+      // What the unit was marked down by, which GA4 reports beside the price
+      // rather than deducting from it. Carried at whatever precision the
+      // per-unit share needs: four cents off ten units is 0.004 each.
       var discount = lineDiscount(item, inclTax);
       if (discount > 0) {
         built.discount = perUnit(discount, item.prices.currency_minor_unit);
@@ -212,6 +212,13 @@
       return total + lineTotal(item, inclTax);
     }, 0);
     return amount(sum, cart.totals.currency_minor_unit);
+  }
+
+  /**
+   * The paid amount of an item row, the way GA4 reads it.
+   */
+  function itemValue(item, minorUnit) {
+    return parseFloat((item.price * item.quantity).toFixed(decimals(minorUnit)));
   }
 
   /**
@@ -339,6 +346,9 @@
   }
 
   function onStoreChange() {
+    if (seen.disabled) {
+      return;
+    }
     var cartStore = wp.data.select(CART);
     if (!cartStore || !cartStore.hasFinishedResolution('getCartData')) {
       return;
@@ -366,7 +376,11 @@
         }
         // The refresh did not bring it either, so nothing here can be priced
         // honestly. Reporting a guessed amount is worse than reporting none.
-        seen.entered = true;
+        // Its own flag, checked before anything else: marking this as entered
+        // would send the next store change down the removal path with no
+        // snapshot to compare against, and a subscriber that throws takes the
+        // dispatch that notified it with it.
+        seen.disabled = true;
         return;
       }
       seen.entered = true;
@@ -381,11 +395,9 @@
     }
     else {
       removedItems(seen.items, cart).forEach(function (gone) {
-        var unit = decimals(gone.minorUnit);
-        var net = (gone.item.price - (gone.item.discount || 0)) * gone.item.quantity;
         push('remove_from_cart', {
           currency: cart.totals.currency_code,
-          value: parseFloat(net.toFixed(unit)),
+          value: itemValue(gone.item, gone.minorUnit),
           items: [gone.item]
         });
       });

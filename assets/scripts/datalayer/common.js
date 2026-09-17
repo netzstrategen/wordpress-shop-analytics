@@ -36,7 +36,8 @@ document.shopAnalytics = {
       var product = {
         item_name: product_data.name,
         item_id: String(product_data.ecommerce_track_id),
-        price: document.shopAnalytics.toAmount(product_data.price),
+        // Not rounded to the currency: a per-unit amount can need more.
+        price: parseFloat(product_data.price) || 0,
         item_category: product_data.category,
       };
 
@@ -47,7 +48,7 @@ document.shopAnalytics = {
         product.item_variant = product_data.variant;
       }
       if (product_data.discount) {
-        product.discount = document.shopAnalytics.toAmount(product_data.discount);
+        product.discount = parseFloat(product_data.discount) || 0;
       }
       if (product_data.quantity) {
         product.quantity = parseInt(product_data.quantity);
