@@ -324,13 +324,13 @@ class Plugin {
       'order-received' => 80,
     ]);
 
-    wp_enqueue_script($handle . '_common', "$scripts/common.js", ['jquery'], FALSE, TRUE);
+    wp_enqueue_script($handle . '_common', "$scripts/common.js", ['jquery'], static::assetVersion($source, 'common'), TRUE);
     wp_localize_script($handle . '_common', Plugin::PREFIX . '_settings', [
       'tc_enabled' => (bool) get_option('shop_analytics_tc_enabled'),
       'datalayer_console_log' => (int) get_option('shop_analytics_datalayer_logging') ? 'on' : 'off',
       'track_add_to_cart_button' => (bool) get_option('shop_analytics_disable_track_add_to_cart_button') ? 'off' : 'on',
     ]);
-    wp_enqueue_script($handle . '_cart_checkout', "$scripts/cart-checkout.js", [$handle . '_common'], FALSE, TRUE);
+    wp_enqueue_script($handle . '_cart_checkout', "$scripts/cart-checkout.js", [$handle . '_common'], static::assetVersion($source, 'cart-checkout'), TRUE);
 
     if (is_cart() || is_checkout()) {
       if (is_cart()) {
@@ -355,7 +355,7 @@ class Plugin {
     }
 
     if (is_wc_endpoint_url()) {
-      wp_enqueue_script($handle . '_endpoints', "$scripts/endpoints.js", [$handle . '_common'], FALSE, TRUE);
+      wp_enqueue_script($handle . '_endpoints', "$scripts/endpoints.js", [$handle . '_common'], static::assetVersion($source, 'endpoints'), TRUE);
       // Inject woocoomerce endpoint identifier into frontend.
       foreach ($wc_endpoints as $endpoint => $order) {
         if (is_wc_endpoint_url($endpoint)) {
@@ -369,7 +369,7 @@ class Plugin {
     }
 
     if (is_product()) {
-      wp_enqueue_script($handle . '_product', "$scripts/product.js", [$handle . '_common'], FALSE, TRUE);
+      wp_enqueue_script($handle . '_product', "$scripts/product.js", [$handle . '_common'], static::assetVersion($source, 'product'), TRUE);
     }
   }
 
@@ -413,6 +413,20 @@ class Plugin {
    *
    * @return string|int|FALSE
    */
+  /**
+   * The version of one datalayer script.
+   *
+   * @param string $source
+   *   '/assets' or '/dist', as the enqueue resolved it.
+   * @param string $name
+   *   Script basename without the extension.
+   *
+   * @return string|int|FALSE
+   */
+  public static function assetVersion($source, $name) {
+    return static::getAssetVersion(static::getBasePath() . $source . '/scripts/datalayer/' . $name . '.js');
+  }
+
   public static function getAssetVersion($file = '') {
     // While developing, the commit does not move between edits, so the file's
     // own timestamp is the only thing that busts the browser cache.
