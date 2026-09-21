@@ -16,6 +16,17 @@ document.shopAnalytics = {
    * @return array
    *   Array of objects containing products details.
    */
+  /**
+   * An amount as a number with two decimals, which is what GA4 reads.
+   *
+   * Values arrive as strings, sometimes with a thousands separator and
+   * sometimes with six decimals of stored precision.
+   */
+  toAmount: function(value) {
+    var number = parseFloat(String(value).replace(/,/g, ''));
+    return isNaN(number) ? 0 : parseFloat(number.toFixed(2));
+  },
+
   getProductsData: function($products) {
     var products_data = [];
 
@@ -25,7 +36,7 @@ document.shopAnalytics = {
       var product = {
         item_name: product_data.name,
         item_id: String(product_data.ecommerce_track_id),
-        price: product_data.price,
+        price: document.shopAnalytics.toAmount(product_data.price),
         item_category: product_data.category,
       };
 
